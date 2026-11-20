@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Break Monitor • PT Agres Info Teknologi</title>">">
+  <style>
+  :root {
+    --brand-red: #e11d48;
+    --brand-soft: #fff1f2;
+    --navy: #0f172a;
+    --navy-soft: #1e293b;
+    --gold: #f59e0b;
+    --bg: #f4f6f9;
+    --card: #ffffff;
+    --text: #1e293b;
+    --muted: #64748b;
+    --danger: #dc2626;
+    --success: #059669;
+    --border: #e2e8f0;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: 430px;
+    height: 100dvh;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg);
+    position: relative;
+  }
+
+  .top-brand-bar {
+    flex: 0 0 auto;
+    background: var(--card);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .brand-left { display: flex; align-items: center; gap: 8px; }
+  .brand-logo {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #fecdd3;
+  }
+  .brand-title { font-size: 11px; font-weight: 800; color: #0284c7; letter-spacing: 0.3px; }
+  .brand-sub { font-size: 9px; color: var(--muted); font-weight: 600; }
+  .header-actions { display: flex; align-items: center; gap: 6px; }
+  .pill-role {
+    background: var(--brand-soft);
+    color: var(--brand-red);
+    border: 1px solid #fecdd3;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 99px;
+  }
+  .btn-logout {
+    background: #f1f5f9;
+    color: var(--text);
+    border: 1px solid #cbd5e1;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  .user-strip {
+    flex: 0 0 auto;
+    background: var(--card);
+    padding: 6px 12px 8px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: 10px;
+  }
+  .user-id-line { font-weight: 800; color: var(--text); font-size: 11px; }
+  .user-dept-line { color: var(--muted); font-weight: 600; text-transform: uppercase; font-size: 9px; }
+  .clock-right { text-align: right; color: var(--muted); font-size: 9px; line-height: 1.3; font-weight: 600; }
+
+  .main-viewport {
+    flex: 1 1 auto;
+    min-height: 0;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .tab-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+
+  .card-grow {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .card-title {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 6px;
+  }
+
+  .hero-banner {
+    background: linear-gradient(135deg, #ffe4e6 0%, #fff1f2 60%, #ffffff 100%);
+    border: 1px solid #fecdd3;
+    border-radius: 12px;
+    padding: 10px 12px;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-row { display: flex; gap: 6px; }
+  .btn-primary { background: var(--navy); color: #fff; }
+  .btn-rose { background: var(--brand-red); color: #fff; }
+  .btn-gold { background: var(--gold); color: var(--navy); }
+  .btn-outline { background: #fff; color: var(--text); border: 1px solid #cbd5e1; }
+
+  .row-between { display: flex; justify-content: space-between; align-items: center; }
+  .slot-pill { padding: 3px 8px; border-radius: 99px; font-size: 10px; font-weight: 800; }
+  .slot-open { background: #dcfce7; color: #166534; }
+  .slot-full { background: #fee2e2; color: #991b1b; }
+
+  .active-timer-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  .timer-display {
+    font-size: 42px;
+    font-weight: 800;
+    color: #fda4af;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+    margin: 6px 0;
+  }
+  .timer-alert { color: #f87171; }
+  .alert-banner {
+    margin-top: 6px;
+    background: #fef2f2;
+    color: var(--danger);
+    font-size: 10px;
+    font-weight: 800;
+    padding: 5px 8px;
+    border-radius: 8px;
+    width: 100%;
+  }
+
+  .qr-wrapper {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #qrcode-box {
+    padding: 10px;
+    background: #fff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 12px;
+  }
+  #qrcode-box img, #qrcode-box canvas {
+    width: 190px !important;
+    height: 190px !important;
+  }
+
+  .scanner-stage {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 130px;
+    border-radius: 12px;
+    background: #0f172a;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+  }
+  .barcode-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    max-height: 155px;
+    border: 1.5px dashed rgba(255, 255, 255, 0.35);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    color: #e2e8f0;
+  }
+  .corner-guide {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border-color: #fb7185;
+    border-style: solid;
+  }
+  .tl { top: -1px; left: -1px; border-width: 3px 0 0 3px; border-top-left-radius: 8px; }
+  .tr { top: -1px; right: -1px; border-width: 3px 3px 0 0; border-top-right-radius: 8px; }
+  .bl { bottom: -1px; left: -1px; border-width: 0 0 3px 3px; border-bottom-left-radius: 8px; }
+  .br { bottom: -1px; right: -1px; border-width: 0 3px 3px 0; border-bottom-right-radius: 8px; }
+
+  #qr-preview-img {
+    max-width: 100%;
+    max-height: 92px;
+    border-radius: 6px;
+    object-fit: contain;
+    margin-bottom: 4px;
+  }
+  .scan-status { font-size: 11px; color: #cbd5e1; text-align: center; line-height: 1.25; }
+
+  .roster-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .roster-block { background: var(--bg); border-radius: 8px; padding: 5px 8px; }
+  .roster-head {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .roster-item {
+    font-size: 10.5px;
+    padding: 2px 0;
+    border-top: 1px dashed #cbd5e1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .stat-box { background: var(--bg); border-radius: 8px; padding: 5px; text-align: center; }
+  .stat-box small { font-size: 9px; color: var(--muted); display: block; }
+  .stat-box strong { font-size: 13px; }
+
+  .bottom-nav {
+    flex: 0 0 60px;
+    height: 60px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: stretch;
+    padding: 4px 6px;
+    gap: 4px;
+  }
+  .nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 10px;
+    color: #64748b;
+    font-size: 10.5px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .nav-item .nav-icon { font-size: 12px; font-weight: 800; line-height: 1.1; }
+  .nav-item.active { background: var(--brand-soft); color: var(--brand-red); }
+
+  .cam-modal {
+    position: fixed;
+    inset: 0;
+    background: #090d16;
+    z-index: 1500;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .cam-modal-top {
+    padding: 12px 16px;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.12);
+    z-index: 2;
+  }
+  .cam-modal-body {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: #000;
+  }
+  #popup-video { width: 100%; height: 100%; object-fit: cover; }
+  .scan-box-overlay {
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 16px;
+    box-shadow: 0 0 0 9999px rgba(9, 13, 22, 0.62);
+    pointer-events: none;
+  }
+  .scan-laser {
+    position: absolute;
+    left: 10px;
+    right: 10px;
+    height: 2px;
+    background: #fb7185;
+    box-shadow: 0 0 8px #f43f5e;
+    animation: laserMove 2s infinite ease-in-out;
+  }
+  @keyframes laserMove {
+    0%, 100% { top: 14px; }
+    50% { top: 222px; }
+  }
+  .cam-modal-bottom {
+    padding: 12px 16px 18px;
+    background: rgba(15, 23, 42, 0.95);
+    color: #e2e8f0;
+    text-align: center;
+    z-index: 2;
+  }
+
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1200;
+  }
+  .modal-card {
+    width: 100%;
+    max-width: 340px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.25);
+    border-top: 4px solid var(--brand-red);
+  }
+  .modal-card.is-success { border-top-color: var(--success); }
+  .modal-badge {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: var(--brand-soft);
+    color: var(--brand-red);
+    margin-bottom: 6px;
+  }
+  .modal-card.is-success .modal-badge { background: #dcfce7; color: #166534; }
+  .modal-title { font-size: 15px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+  .modal-body { font-size: 12.5px; color: #475569; line-height: 1.45; margin-bottom: 14px; }
+
+  #toast {
+    position: fixed;
+    top: 54px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 380px;
+    background: var(--navy);
+    color: #fff;
+    border-left: 4px solid var(--brand-red);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    z-index: 1100;
+    display: none;
+  }
+
+  .hidden { display: none !important; }
+</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- jsQR: decoder cadangan untuk live camera (iOS/Firefox/WebView yang tidak punya BarcodeDetector) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+  <!-- html5-qrcode: cadangan terakhir untuk baca QR dari foto -->
+  <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <div class="app-shell">
+    <div id="toast"></div>
+
+    <!-- CUSTOM POP-UP MODAL -->
+    <div id="custom-modal" class="modal-backdrop hidden">
+      <div id="modal-card" class="modal-card">
+        <div id="modal-badge" class="modal-badge">INFO</div>
+        <div id="modal-title" class="modal-title">Notifikasi</div>
+        <div id="modal-body" class="modal-body">-</div>
+        <button type="button" class="btn btn-rose" id="btn-close-modal">OKE, MENGERTI</button>
+      </div>
+    </div>
+
+    <!-- POP-UP LIVE CAMERA SCANNER -->
+    <div id="camera-popup-modal" class="cam-modal hidden">
+      <div class="cam-modal-top">
+        <div>
+          <div style="font-size:13px; font-weight:800;">LIVE CAMERA • SCAN QR</div>
+          <div style="font-size:10px; color:#94a3b8;">Arahkan QR ke dalam kotak pembatas</div>
+        </div>
+        <button type="button" class="btn-logout" id="btn-close-cam-modal" style="background:#dc2626; color:#fff; border:none; padding:6px 12px;">Tutup</button>
+      </div>
+
+      <div class="cam-modal-body">
+        <video id="popup-video" playsinline autoplay muted></video>
+        <div class="scan-box-overlay">
+          <span class="corner-guide tl"></span>
+          <span class="corner-guide tr"></span>
+          <span class="corner-guide bl"></span>
+          <span class="corner-guide br"></span>
+          <div class="scan-laser"></div>
+        </div>
+      </div>
+
+      <div class="cam-modal-bottom">
+        <div id="popup-cam-hint" style="font-size:11px; margin-bottom:10px;">Menyalakan kamera...</div>
+        <div class="btn-row">
+          <button type="button" class="btn btn-gold" id="btn-snap-photo">Jepret Foto QR</button>
+          <button type="button" class="btn btn-outline" id="btn-google-scanner" style="background:#1e293b; color:#fff; border-color:#334155;">Google Scanner</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP BRAND BAR -->
+    <div class="top-brand-bar">
+      <div class="brand-left">
+        <img
+          src="https://secure.gravatar.com/avatar/0914e084884bfd0ba43aa3e2c99988e78f7109b329878a3deab336194a6b9796?s=500&d=mm&r=g"
+          alt="Logo Agres"
+          class="brand-logo"
+        >
+        <div>
+          <div class="brand-title">PT AGRES INFO TEKNOLOGI</div>
+          <div class="brand-sub">BREAK &amp; SESSION MONITOR</div>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span id="header-badge" class="pill-role hidden">STAFF</span>
+        <button type="button" id="btn-logout" class="btn-logout hidden">Keluar</button>
+      </div>
+    </div>
+
+    <!-- USER IDENTITY STRIP -->
+    <div id="user-strip" class="user-strip hidden">
+      <div>
+        <div id="strip-user" class="user-id-line">-</div>
+        <div id="strip-jabatan" class="user-dept-line">-</div>
+      </div>
+      <div id="strip-clock" class="clock-right">-</div>
+    </div>
+
+    <!-- VIEW LOGIN -->
+    <div id="view-login" class="main-viewport" style="justify-content:center;">
+      <div class="hero-banner" style="margin-bottom:8px;">
+        <div style="font-size:12px; font-weight:800; color:var(--brand-red);">SISTEM ISTIRAHAT 2 SESI</div>
+        <div style="font-size:11px; color:#475569; margin-top:2px;">Total kuota 60 menit • Maksimal 2 orang per divisi bersamaan</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Masuk Akun Karyawan</div>
+        <input type="text" id="login-id" placeholder="User ID (misal: Q0241)" autocomplete="off">
+        <input type="password" id="login-pin" placeholder="PIN (4-6 Digit)" inputmode="numeric">
+        <button type="button" class="btn btn-rose" id="btn-login-submit">MASUK</button>
+      </div>
+    </div>
+
+    <!-- VIEW MAIN APP -->
+    <div id="view-app" class="main-viewport hidden">
+
+      <!-- TAB 1: QR CODE & LIVE TIMER -->
+      <div id="tab-home" class="tab-panel">
+        <div class="hero-banner">
+          <div class="row-between">
+            <div>
+              <div class="card-title" style="margin-bottom:1px; color:#9f1239;">Slot Divisi (<span id="divisi-name-label">-</span>)</div>
+              <strong id="slot-counter" style="font-size:14px;">0 / 2 Orang</strong>
+            </div>
+            <span id="slot-badge" class="slot-pill slot-open">TERSEDIA</span>
+          </div>
+          <div class="row-between" style="margin-top:6px; font-size:11px;">
+            <span>Sisa Kuota: <strong id="quota-left">60 Menit</strong></span>
+            <span>Sesi Selesai: <strong id="session-done">0 / 2</strong></span>
+          </div>
+        </div>
+
+        <div class="card card-grow" id="qr-standby-card">
+          <div class="card-title" id="qr-instruction">Tunjukkan QR Code ke TL / SPV</div>
+          <div class="qr-wrapper">
+            <div id="qrcode-box"></div>
+            <div id="qr-user-label" style="font-size:12px; font-weight:800; margin-top:6px;">-</div>
+          </div>
+          <div style="text-align:center; font-size:10px; color:var(--muted);">
+            Otomatis memulai hitung durasi setelah di-scan
+          </div>
+        </div>
+
+        <div class="active-timer-panel hidden" id="timer-running-card">
+          <div style="font-size:10px; font-weight:800; letter-spacing:0.8px; color:#fda4af;">
+            SEDANG ISTIRAHAT • SESI <span id="active-sesi-num">1</span>
+          </div>
+          <div id="live-timer" class="timer-display">00:00</div>
+          <div style="font-size:11px; color:#e2e8f0;">Scan QR lagi di TL/SPV saat selesai</div>
+          <div id="alert-banner" class="alert-banner hidden">[ALERT] Sudah melewati 40 menit pertama!</div>
+          <button type="button" class="btn btn-gold" id="btn-show-finish-qr" style="margin-top:10px;">
+            Tampilkan QR Finish
+          </button>
+        </div>
+      </div>
+
+      <!-- TAB 2: SCAN QR (LEADER) -->
+      <div id="tab-scanner" class="tab-panel hidden">
+        <div class="card card-grow">
+          <div class="card-title">Pemindai Barcode &amp; QR Code</div>
+          <div class="scanner-stage">
+            <div class="barcode-frame">
+              <span class="corner-guide tl"></span>
+              <span class="corner-guide tr"></span>
+              <span class="corner-guide bl"></span>
+              <span class="corner-guide br"></span>
+              <img id="qr-preview-img" class="hidden" alt="Preview QR">
+              <div id="scan-status" class="scan-status">
+                Kamera terbuka otomatis. Jika tidak, tekan <b>SCAN QR</b> lalu foto QR-nya.
+              </div>
+            </div>
+          </div>
+          <div id="qr-file-decoder" class="hidden"></div>
+
+          <div style="margin-top:8px;">
+            <div class="btn-row">
+              <button type="button" class="btn btn-rose" id="btn-open-popup-cam">SCAN QR</button>
+              <button type="button" class="btn btn-outline" id="btn-open-photo-file" style="width:auto; padding:9px 12px;">Foto QR</button>
+              <button type="button" class="btn btn-outline" id="btn-open-google-tab" style="width:auto; padding:9px 12px;">Google</button>
+            </div>
+            <button type="button" class="btn btn-outline" id="btn-toggle-hw" style="margin-top:6px;">Mode Alat Scan: MATI</button>
+            <input type="text" id="hw-scan-input" class="hidden" inputmode="none" autocomplete="off" autocapitalize="off" spellcheck="false"
+                   placeholder="Alat scan siap • tembak QR" style="margin:6px 0 0; font-size:12px; padding:7px; text-align:center;">
+
+            <input type="file" id="qr-file-input" accept="image/*" capture="environment" class="hidden">
+
+            <div class="btn-row" style="margin-top:6px; margin-bottom:0;">
+              <input type="text" id="manual-code" placeholder="Ketik kode (Q0241 / POS-...)" style="margin-bottom:0; font-size:12px; padding:7px;">
+              <button type="button" class="btn btn-primary" id="btn-submit-manual" style="width:auto; padding:7px 12px;">Proses</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: REPORT & LIVE ROSTER (LEADER) -->
+      <div id="tab-monitor" class="tab-panel hidden">
+        <div class="card card-grow" style="gap:5px;">
+          <div class="row-between">
+            <span class="card-title" style="margin-bottom:0;">Monitoring &amp; Report</span>
+            <div class="btn-row" style="width:auto; gap:4px;">
+              <select id="report-period" style="width:auto; margin-bottom:0; padding:3px 6px; font-size:10px;">
+                <option value="DAILY">Harian</option>
+                <option value="WEEKLY">Mingguan</option>
+                <option value="MONTHLY">Bulanan</option>
+              </select>
+              <button type="button" class="btn btn-gold" id="btn-refresh-monitor" style="width:auto; padding:3px 8px; font-size:10px;">Refresh</button>
+            </div>
+          </div>
+
+          <div class="roster-grid">
+            <div class="roster-block">
+              <div class="roster-head" style="color:#0284c7;">
+                <span>[AKTIF] Sedang Istirahat</span>
+                <span id="cnt-sedang">0</span>
+              </div>
+              <div id="list-sedang" style="font-size:10.5px; color:var(--muted);">-</div>
+            </div>
+
+            <div class="roster-block" style="background:#fef2f2;">
+              <div class="roster-head" style="color:var(--danger);">
+                <span>[LEWAT] Seharusnya Sudah Masuk</span>
+                <span id="cnt-lewat">0</span>
+              </div>
+              <div id="list-lewat" style="font-size:10.5px; color:var(--muted);">-</div>
+            </div>
+
+            <div class="roster-block" style="background:#f0fdf4;">
+              <div class="roster-head" style="color:var(--success);">
+                <span>[SELESAI] Sudah Istirahat (Sisa Menit)</span>
+                <span id="cnt-sudah">0</span>
+              </div>
+              <div id="list-sudah" style="font-size:10.5px; color:var(--muted);">-</div>
+            </div>
+
+            <div class="roster-block">
+              <div class="roster-head" style="color:#475569;">
+                <span>[MENUNGGU] Belum Istirahat</span>
+                <span id="cnt-belum">0</span>
+              </div>
+              <div id="list-belum" style="font-size:10.5px; color:var(--muted);">-</div>
+            </div>
+          </div>
+
+          <div style="border-top:1px solid var(--border); padding-top:5px;">
+            <div class="stats-grid">
+              <div class="stat-box">
+                <small>Rata-rata</small>
+                <strong id="stat-avg">0 mnt</strong>
+              </div>
+              <div class="stat-box">
+                <small>Tepat Waktu</small>
+                <strong id="stat-ontime" style="color:var(--success);">100%</strong>
+              </div>
+            </div>
+            <div id="late-list" style="font-size:10.5px; max-height:36px; overflow-y:auto;">Belum ada data lewat jam.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div id="bottom-nav" class="bottom-nav hidden">
+      <div class="nav-item active" data-tab="home" id="nav-home">
+        <span class="nav-icon">QR</span>
+        <span>QR &amp; Timer</span>
+      </div>
+      <div class="nav-item leader-only hidden" data-tab="scanner" id="nav-scanner">
+        <span class="nav-icon">SCAN</span>
+        <span>Scan QR</span>
+      </div>
+      <div class="nav-item leader-only hidden" data-tab="monitor" id="nav-monitor">
+        <span class="nav-icon">RPT</span>
+        <span>Report</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+// ===== Pengganti google.script.run -> memanggil Apps Script lewat fetch =====
+(function () {
+  var API_URL = '';   // WAJIB DIISI: URL Web App Apps Script yang berakhiran /exec
+
+  function call(fn, args, ok, fail) {
+    if (!API_URL) {
+      setTimeout(function () { if (fail) fail({ message: 'API_URL belum diisi di index.html' }); }, 0);
+      return;
+    }
+    fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn: fn, args: args }) })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok) { if (ok) ok(j.data); }
+        else if (fail) fail({ message: (j && j.error) || 'Respon server tidak valid' });
+      })
+      .catch(function (e) {
+        if (fail) fail({ message: 'Gagal menghubungi server: ' + ((e && e.message) || e) });
+      });
+  }
+
+  function makeRunner(ok, fail) {
+    return new Proxy({}, {
+      get: function (_, prop) {
+        if (prop === 'withSuccessHandler') return function (f) { return makeRunner(f, fail); };
+        if (prop === 'withFailureHandler') return function (f) { return makeRunner(ok, f); };
+        return function () { call(String(prop), Array.prototype.slice.call(arguments), ok, fail); };
+      }
+    });
+  }
+
+  window.google = window.google || {};
+  window.google.script = { run: makeRunner(null, null) };
+})();
+</script>
+<script>
+(function() {
+  // ====== KONFIGURASI SCANNER POP-UP (WAJIB DIISI) ======
+  // URL halaman scanner.html yang sudah di-host (GitHub Pages / Netlify / dll), HTTPS.
+  var SCANNER_URL = '';   // contoh: 'https://namauser.github.io/agres-scanner/scanner.html'
+  // URL Web App Apps Script (yang berakhiran /exec). Dipakai untuk mode cadangan (redirect).
+  var APP_EXEC_URL = '';  // https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec'
+  // =======================================================
+  var scannerWin = null;
+
+  var STORAGE_KEY = 'AGRES_BREAK_SESSION_V11';
+  var currentUser = null;
+  var sysConfig = {};
+  var timerInterval = null;
+  var autoSyncInterval = null;
+  var clockInterval = null;
+  var alert40Shown = false;
+  var forceShowQrForFinish = false;
+
+  // ===== STATE KAMERA =====
+  var popupStream = null;
+  var popupLoopId = null;
+  var popupScanActive = false;
+  var camOpenToken = 0;            // mencegah balapan jika tombol ditekan berkali-kali
+  var barcodeDetector = null;      // native detector (jika didukung browser)
+  var scanCanvas = null;           // canvas untuk jsQR
+  var scanCtx = null;
+  var lastDecodeAt = 0;
+  var hwMode = false;              // Mode Alat Scan (scanner USB/Bluetooth sebagai keyboard)
+  var liveBlocked = false;         // true = kamera live diblokir iframe -> pakai mode foto QR
+  var scanProcessing = false;      // mencegah scan ganda saat menunggu server
+  var reopenCamAfterModal = false; // setelah hasil scan ditutup, kamera nyala lagi (scan berurutan)
+
+  // ===== UTIL =====
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function isScannerTabActive() {
+    var el = document.getElementById('tab-scanner');
+    return !!el && !el.classList.contains('hidden');
+  }
+
+  function bindEvents() {
+    var btnLogin = document.getElementById('btn-login-submit');
+    if (btnLogin) btnLogin.addEventListener('click', handleLogin);
+
+    var pinInput = document.getElementById('login-pin');
+    if (pinInput) {
+      pinInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') handleLogin();
+      });
+    }
+
+    var btnLogout = document.getElementById('btn-logout');
+    if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+
+    var btnCloseModal = document.getElementById('btn-close-modal');
+    if (btnCloseModal) btnCloseModal.addEventListener('click', closeCustomModal);
+
+    var btnShowFinish = document.getElementById('btn-show-finish-qr');
+    if (btnShowFinish) btnShowFinish.addEventListener('click', showFinishQrModal);
+
+    var btnOpenPopupCam = document.getElementById('btn-open-popup-cam');
+    if (btnOpenPopupCam) btnOpenPopupCam.addEventListener('click', openPopupCamera);
+
+    var btnCloseCamModal = document.getElementById('btn-close-cam-modal');
+    if (btnCloseCamModal) btnCloseCamModal.addEventListener('click', function() {
+      reopenCamAfterModal = false;
+      closePopupCamera();
+    });
+
+    var btnSnapPhoto = document.getElementById('btn-snap-photo');
+    if (btnSnapPhoto) btnSnapPhoto.addEventListener('click', function() {
+      if (camRetryMode) openPopupCamera(); else snapFrameAndDecode();
+    });
+
+    var btnGoogleScanner = document.getElementById('btn-google-scanner');
+    if (btnGoogleScanner) btnGoogleScanner.addEventListener('click', openGoogleExternalScanner);
+
+    var btnOpenGoogleTab = document.getElementById('btn-open-google-tab');
+    if (btnOpenGoogleTab) btnOpenGoogleTab.addEventListener('click', openGoogleExternalScanner);
+
+    var btnPhotoFile = document.getElementById('btn-open-photo-file');
+    if (btnPhotoFile) btnPhotoFile.addEventListener('click', function() {
+      document.getElementById('qr-file-input').click();
+    });
+
+    var fileInput = document.getElementById('qr-file-input');
+    if (fileInput) fileInput.addEventListener('change', handlePhotoScan);
+
+    var btnToggleHw = document.getElementById('btn-toggle-hw');
+    if (btnToggleHw) btnToggleHw.addEventListener('click', function() {
+      hwMode = !hwMode;
+      try { localStorage.setItem('AGRES_HW_MODE', hwMode ? '1' : '0'); } catch (e) {}
+      applyHwMode();
+      showToast(hwMode ? 'Mode Alat Scan AKTIF' : 'Mode Alat Scan dimatikan');
+    });
+
+    var hwInput = document.getElementById('hw-scan-input');
+    if (hwInput) {
+      hwInput.addEventListener('keydown', function(e) {
+        // scanner fisik umumnya mengakhiri dengan Enter (kadang Tab)
+        if (e.key === 'Enter' || e.key === 'Tab') {
+          e.preventDefault();
+          var v = hwInput.value.trim();
+          hwInput.value = '';
+          if (v) handleScannedValue(v);
+        }
+      });
+    }
+
+    var btnSubmitManual = document.getElementById('btn-submit-manual');
+    if (btnSubmitManual) btnSubmitManual.addEventListener('click', submitManualCode);
+
+    var manualInput = document.getElementById('manual-code');
+    if (manualInput) {
+      manualInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') submitManualCode();
+      });
+    }
+
+    var reportPeriod = document.getElementById('report-period');
+    if (reportPeriod) reportPeriod.addEventListener('change', loadAnalytics);
+
+    var btnRefreshMonitor = document.getElementById('btn-refresh-monitor');
+    if (btnRefreshMonitor) btnRefreshMonitor.addEventListener('click', loadLeaderMonitor);
+
+    var navItems = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < navItems.length; i++) {
+      (function(item) {
+        item.addEventListener('click', function() {
+          var tab = item.getAttribute('data-tab');
+          switchTab(tab, item);
+        });
+      })(navItems[i]);
+    }
+
+    // Matikan kamera saat aplikasi pindah ke background (hemat baterai + hindari stream menggantung)
+    document.addEventListener('visibilitychange', function() {
+      if (document.hidden) stopMediaOnly();
+    });
+  }
+
+  window.addEventListener('DOMContentLoaded', function() {
+    bindEvents();
+    startClock();
+    try { hwMode = localStorage.getItem('AGRES_HW_MODE') === '1'; } catch (e) {}
+    applyHwMode();
+    // jaga fokus tetap di kolom alat scan (kecuali user sedang mengetik di kolom lain)
+    setInterval(function() {
+      if (!hwMode) return;
+      var a = document.activeElement;
+      if (!a || (a.tagName !== 'INPUT' && a.tagName !== 'SELECT' && a.tagName !== 'TEXTAREA')) focusHwInput();
+    }, 1000);
+    try {
+      var saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('AGRES_BREAK_SESSION_V10');
+      if (saved) {
+        var parsed = JSON.parse(saved);
+        if (parsed && parsed.user && parsed.user.userId) {
+          currentUser = parsed.user;
+          sysConfig = parsed.config || {};
+          initLoggedInUI();
+          silentRefreshState();
+          checkUrlScanParam();
+        }
+      }
+    } catch (e) {}
+  });
+
+  function applyHwMode() {
+    var btn = document.getElementById('btn-toggle-hw');
+    var inp = document.getElementById('hw-scan-input');
+    if (btn) {
+      btn.innerText = 'Mode Alat Scan: ' + (hwMode ? 'AKTIF' : 'MATI');
+      btn.className = 'btn ' + (hwMode ? 'btn-primary' : 'btn-outline');
+    }
+    if (inp) inp.classList.toggle('hidden', !hwMode);
+    if (hwMode) {
+      closePopupCamera();
+      setTimeout(focusHwInput, 50);
+    }
+  }
+
+  function focusHwInput() {
+    if (!hwMode || !isScannerTabActive()) return;
+    var m = document.getElementById('custom-modal');
+    if (m && !m.classList.contains('hidden')) return;
+    var inp = document.getElementById('hw-scan-input');
+    if (inp && document.activeElement !== inp) {
+      try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); }
+    }
+  }
+
+  function checkUrlScanParam() {
+    if (!currentUser) return;
+    try {
+      var metaCode = document.querySelector('meta[name="initial-scan"]');
+      var metaTs = document.querySelector('meta[name="initial-scan-ts"]');
+      var scanCode = metaCode ? String(metaCode.getAttribute('content') || '').trim() : '';
+      var scanTs = metaTs ? String(metaTs.getAttribute('content') || '').trim() : '';
+
+      if (!scanCode) {
+        var params = new URLSearchParams(window.location.search || '');
+        scanCode = (params.get('scan') || '').trim();
+        scanTs = (params.get('t') || '').trim();
+      }
+      if (!scanCode) return;
+
+      // kosongkan agar tidak diproses dua kali
+      if (metaCode) metaCode.setAttribute('content', '');
+
+      // anti-ulang: abaikan jika timestamp scan ini sudah pernah diproses (mis. halaman di-reload)
+      if (scanTs) {
+        try {
+          var last = Number(localStorage.getItem('AGRES_LAST_SCAN_TS') || 0);
+          if (last && last >= Number(scanTs)) return;
+          localStorage.setItem('AGRES_LAST_SCAN_TS', String(scanTs));
+        } catch (e) {}
+      }
+      handleScannedValue(scanCode);
+    } catch (e) {}
+  }
+
+  function startClock() {
+    var updateNow = function() {
+      var el = document.getElementById('strip-clock');
+      if (!el) return;
+      var now = new Date();
+      var hari = now.toLocaleDateString('id-ID', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' }).toUpperCase();
+      var jam = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      el.innerHTML = hari + '<br>' + jam + ' WIB';
+    };
+    updateNow();
+    clearInterval(clockInterval);
+    clockInterval = setInterval(updateNow, 30000);
+  }
+
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.innerText = msg;
+    t.style.display = 'block';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(function() { t.style.display = 'none'; }, 3000);
+  }
+
+  function openCustomModal(title, message, isSuccess) {
+    clearTimeout(window._hwCloseTimer);
+    var backdrop = document.getElementById('custom-modal');
+    var card = document.getElementById('modal-card');
+    var badge = document.getElementById('modal-badge');
+    var titleEl = document.getElementById('modal-title');
+    var bodyEl = document.getElementById('modal-body');
+
+    card.classList.toggle('is-success', Boolean(isSuccess));
+    badge.innerText = isSuccess ? 'BERHASIL' : 'PERHATIAN';
+    titleEl.innerText = title || 'Informasi';
+    bodyEl.innerText = message || '';
+    backdrop.classList.remove('hidden');
+  }
+
+  function closeCustomModal() {
+    document.getElementById('custom-modal').classList.add('hidden');
+    // Scan berurutan: setelah hasil ditutup, kamera langsung nyala lagi
+    if (reopenCamAfterModal && currentUser && currentUser.role === 'LEADER' && isScannerTabActive()) {
+      reopenCamAfterModal = false;
+      openPopupCamera();
+    }
+    reopenCamAfterModal = false;
+    setTimeout(focusHwInput, 50);
+  }
+
+  function setScanStatus(msg, isErr) {
+    var el = document.getElementById('scan-status');
+    if (!el) return;
+    el.innerHTML = msg;
+    el.style.color = isErr ? '#fca5a5' : '#e2e8f0';
+  }
+
+  function handleLogin() {
+    var id = document.getElementById('login-id').value.trim();
+    var pin = document.getElementById('login-pin').value.trim();
+    if (!id || !pin) {
+      return openCustomModal('Data Belum Lengkap', 'Silakan isi User ID dan PIN terlebih dahulu.', false);
+    }
+
+    var btn = document.getElementById('btn-login-submit');
+    btn.innerText = 'MEMUAT...';
+    btn.disabled = true;
+
+    google.script.run
+      .withSuccessHandler(function(res) {
+        btn.innerText = 'MASUK';
+        btn.disabled = false;
+        if (!res || !res.success) {
+          return openCustomModal('Gagal Masuk', (res && res.message) || 'Login gagal.', false);
+        }
+
+        currentUser = res.user;
+        sysConfig = res.config || {};
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: currentUser, config: sysConfig }));
+        } catch (e) {}
+
+        initLoggedInUI();
+        renderState(res.state);
+        checkUrlScanParam();
+      })
+      .withFailureHandler(function(err) {
+        btn.innerText = 'MASUK';
+        btn.disabled = false;
+        openCustomModal('Koneksi Bermasalah', (err && err.message) || 'Gagal menghubungi server.', false);
+      })
+      .loginUser(id, pin);
+  }
+
+  function handleLogout() {
+    reopenCamAfterModal = false;
+    try { if (scannerWin && !scannerWin.closed) scannerWin.close(); } catch (e) {}
+    closePopupCamera();
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem('AGRES_BREAK_SESSION_V10');
+    } catch (e) {}
+    clearInterval(timerInterval);
+    clearInterval(autoSyncInterval);
+    timerInterval = null;
+    autoSyncInterval = null;
+    currentUser = null;
+    sysConfig = {};
+    forceShowQrForFinish = false;
+    alert40Shown = false;
+
+    document.getElementById('login-pin').value = '';
+    document.getElementById('view-app').classList.add('hidden');
+    document.getElementById('bottom-nav').classList.add('hidden');
+    document.getElementById('user-strip').classList.add('hidden');
+    document.getElementById('btn-logout').classList.add('hidden');
+    document.getElementById('header-badge').classList.add('hidden');
+    var leaderEls = document.querySelectorAll('.leader-only');
+    for (var i = 0; i < leaderEls.length; i++) {
+      leaderEls[i].classList.add('hidden');
+    }
+
+    var navEls = document.querySelectorAll('.nav-item');
+    for (var j = 0; j < navEls.length; j++) {
+      navEls[j].classList.remove('active');
+    }
+    var homeNav = document.querySelector('.nav-item[data-tab="home"]');
+    if (homeNav) homeNav.classList.add('active');
+
+    var tabs = ['home', 'scanner', 'monitor'];
+    for (var k = 0; k < tabs.length; k++) {
+      document.getElementById('tab-' + tabs[k]).classList.toggle('hidden', k !== 0);
+    }
+
+    document.getElementById('view-login').classList.remove('hidden');
+    showToast('Anda telah keluar.');
+  }
+
+  function initLoggedInUI() {
+    document.getElementById('view-login').classList.add('hidden');
+    document.getElementById('view-app').classList.remove('hidden');
+    document.getElementById('bottom-nav').classList.remove('hidden');
+    document.getElementById('user-strip').classList.remove('hidden');
+    document.getElementById('btn-logout').classList.remove('hidden');
+
+    document.getElementById('strip-user').innerText = currentUser.userId + ' / ' + currentUser.nama;
+    document.getElementById('strip-jabatan').innerText = currentUser.jabatan + ' • ' + currentUser.role;
+
+    var badge = document.getElementById('header-badge');
+    badge.innerText = currentUser.role;
+    badge.classList.remove('hidden');
+
+    if (currentUser.role === 'LEADER') {
+      var leaderEls = document.querySelectorAll('.leader-only');
+      for (var i = 0; i < leaderEls.length; i++) {
+        leaderEls[i].classList.remove('hidden');
+      }
+      document.getElementById('qr-instruction').innerText = 'QR Pribadi (Scan Pos di Tab Scan QR)';
+    }
+
+    var qrBox = document.getElementById('qrcode-box');
+    qrBox.innerHTML = '';
+    if (window.QRCode) {
+      new QRCode(qrBox, {
+        text: String(currentUser.userId),
+        width: 190,
+        height: 190,
+        correctLevel: QRCode.CorrectLevel.H
+      });
+    }
+    document.getElementById('qr-user-label').innerText = currentUser.userId + ' - ' + currentUser.nama;
+
+    clearInterval(autoSyncInterval);
+    autoSyncInterval = setInterval(silentRefreshState, 4000);
+  }
+
+  function silentRefreshState() {
+    if (!currentUser) return;
+    google.script.run.withSuccessHandler(function(state) {
+      if (currentUser) renderState(state);
+    }).getUserDailyStatus(currentUser.userId);
+  }
+
+  function showFinishQrModal() {
+    forceShowQrForFinish = true;
+    document.getElementById('timer-running-card').classList.add('hidden');
+    document.getElementById('qr-standby-card').classList.remove('hidden');
+    document.getElementById('qr-instruction').innerText = 'Scan QR Ini ke TL/SPV untuk FINISH Istirahat';
+  }
+
+  function renderState(state) {
+    if (!state || !currentUser) return;
+    var maxPerDivisi = Number(sysConfig.MAX_CONCURRENT || 2);
+
+    document.getElementById('divisi-name-label').innerText = state.divisiName || currentUser.jabatan;
+    document.getElementById('slot-counter').innerText = state.divisiActiveCount + ' / ' + maxPerDivisi + ' Orang';
+
+    var slotBadge = document.getElementById('slot-badge');
+    if (state.divisiActiveCount >= maxPerDivisi) {
+      slotBadge.innerText = 'DIVISI PENUH';
+      slotBadge.className = 'slot-pill slot-full';
+    } else {
+      slotBadge.innerText = 'TERSEDIA';
+      slotBadge.className = 'slot-pill slot-open';
+    }
+
+    document.getElementById('quota-left').innerText = state.remainingMinutes + ' Menit';
+    document.getElementById('session-done').innerText = state.completedSessions + ' / 2';
+
+    if (state.activeSession) {
+      document.getElementById('active-sesi-num').innerText = state.activeSession.sesi;
+      if (!forceShowQrForFinish) {
+        document.getElementById('qr-standby-card').classList.add('hidden');
+        document.getElementById('timer-running-card').classList.remove('hidden');
+      }
+      startLiveCountdown(state.activeSession.startTimestamp, state.usedMinutes);
+    } else {
+      forceShowQrForFinish = false;
+      clearInterval(timerInterval);
+      timerInterval = null;
+      alert40Shown = false;
+      document.getElementById('timer-running-card').classList.add('hidden');
+      document.getElementById('qr-standby-card').classList.remove('hidden');
+      document.getElementById('qr-instruction').innerText = currentUser.role === 'LEADER'
+        ? 'QR Pribadi (Scan Pos di Tab Scan QR)'
+        : 'Tunjukkan QR Code ke TL / SPV';
+    }
+  }
+
+  function startLiveCountdown(startTs, usedBeforeMin) {
+    var alertMin = Number(sysConfig.ALERT_MENIT || 40);
+    var maxQuota = Number(sysConfig.TOTAL_KUOTA_MENIT || 60);
+
+    var tick = function() {
+      var diffSec = Math.max(0, Math.floor((Date.now() - startTs) / 1000));
+      var mins = Math.floor(diffSec / 60);
+      var secs = diffSec % 60;
+
+      var timerEl = document.getElementById('live-timer');
+      timerEl.innerText = String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+
+      if (mins >= alertMin) {
+        document.getElementById('alert-banner').classList.remove('hidden');
+        if (!alert40Shown) {
+          alert40Shown = true;
+          openCustomModal('Peringatan 40 Menit', 'Waktu istirahat sesi ini sudah mencapai 40 menit pertama.', false);
+          if (navigator.vibrate) navigator.vibrate([300, 100, 300]);
+        }
+      } else {
+        document.getElementById('alert-banner').classList.add('hidden');
+      }
+
+      if ((usedBeforeMin + mins) >= maxQuota) {
+        timerEl.classList.add('timer-alert');
+      } else {
+        timerEl.classList.remove('timer-alert');
+      }
+    };
+
+    clearInterval(timerInterval);
+    tick();
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  function switchTab(tabName, el) {
+    closePopupCamera();
+
+    var navEls = document.querySelectorAll('.nav-item');
+    for (var i = 0; i < navEls.length; i++) {
+      navEls[i].classList.remove('active');
+    }
+    if (el) el.classList.add('active');
+
+    var tabs = ['home', 'scanner', 'monitor'];
+    for (var j = 0; j < tabs.length; j++) {
+      document.getElementById('tab-' + tabs[j]).classList.toggle('hidden', tabs[j] !== tabName);
+    }
+
+    if (tabName === 'monitor') {
+      loadLeaderMonitor();
+    }
+
+    // === AUTO BUKA POP-UP KAMERA saat masuk tab Scan QR ===
+    if (tabName === 'scanner' && currentUser && currentUser.role === 'LEADER') {
+      if (hwMode) {
+        focusHwInput();
+        setTimeout(focusHwInput, 200);
+      } else {
+        openPopupCamera();
+        if (!('ontouchstart' in window)) {
+          setTimeout(function() {
+            var m = document.getElementById('manual-code');
+            if (m) m.focus();
+          }, 200);
+        }
+      }
+    }
+  }
+
+  // =====================================================
+  //  ENGINE KAMERA & DECODER
+  // =====================================================
+
+  // Buat decoder native (BarcodeDetector) hanya dengan format yang benar-benar didukung.
+  async function getNativeDetector() {
+    if (barcodeDetector) return barcodeDetector;
+    if (!('BarcodeDetector' in window)) return null;
+    try {
+      var wanted = ['qr_code', 'code_128', 'code_39', 'ean_13'];
+      var formats = wanted;
+      if (typeof BarcodeDetector.getSupportedFormats === 'function') {
+        var supported = await BarcodeDetector.getSupportedFormats();
+        formats = wanted.filter(function(f) { return supported.indexOf(f) !== -1; });
+      }
+      if (!formats.length) return null;
+      barcodeDetector = new BarcodeDetector({ formats: formats });
+      return barcodeDetector;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function ensureCanvas() {
+    if (!scanCanvas) {
+      scanCanvas = document.createElement('canvas');
+      scanCtx = scanCanvas.getContext('2d', { willReadFrequently: true });
+    }
+  }
+
+  // Decode dari sumber visual apa pun (video / bitmap / canvas). Mengembalikan string atau ''.
+  async function decodeSource(source, srcW, srcH, maxSide) {
+    // 1) native
+    var det = await getNativeDetector();
+    if (det) {
+      try {
+        var found = await det.detect(source);
+        if (found && found.length > 0 && found[0].rawValue) return String(found[0].rawValue);
+      } catch (e) {}
+    }
+    // 2) jsQR (fallback untuk iOS / Firefox / WebView / desktop yang tidak punya BarcodeDetector)
+    if (window.jsQR && srcW && srcH) {
+      try {
+        ensureCanvas();
+        var scale = Math.min(1, (maxSide || 720) / Math.max(srcW, srcH));
+        var w = Math.max(1, Math.round(srcW * scale));
+        var h = Math.max(1, Math.round(srcH * scale));
+        scanCanvas.width = w;
+        scanCanvas.height = h;
+        scanCtx.drawImage(source, 0, 0, w, h);
+        var img = scanCtx.getImageData(0, 0, w, h);
+        var qr = window.jsQR(img.data, w, h, { inversionAttempts: 'attemptBoth' });
+        if (qr && qr.data) return String(qr.data);
+      } catch (e) {}
+    }
+    return '';
+  }
+
+  function explainCameraError(err) {
+    var name = (err && err.name) || '';
+    if (name === 'NotAllowedError' || name === 'SecurityError' || name === 'PermissionDeniedError') {
+      return 'Izin kamera ditolak atau diblokir. Izinkan kamera untuk situs ini di pengaturan browser. ' +
+             'Jika aplikasi dibuka dari WhatsApp / Google Sites / aplikasi lain, buka link-nya langsung di Chrome (Android) atau Safari (iPhone).';
+    }
+    if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+      return 'Kamera tidak ditemukan di perangkat ini.';
+    }
+    if (name === 'NotReadableError' || name === 'TrackStartError') {
+      return 'Kamera sedang dipakai aplikasi lain. Tutup aplikasi kamera lain lalu coba lagi.';
+    }
+    if (name === 'OverconstrainedError') {
+      return 'Pengaturan kamera tidak cocok dengan perangkat ini.';
+    }
+    if (!window.isSecureContext) {
+      return 'Kamera hanya bisa dipakai lewat koneksi aman (HTTPS).';
+    }
+    return 'Kamera tidak bisa dibuka (' + (name || (err && err.message) || 'unknown') + ').';
+  }
+
+  async function requestCameraStream() {
+    var attempts = [
+      { video: { facingMode: { exact: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false },
+      { video: { facingMode: { ideal: 'environment' } }, audio: false },
+      { video: true, audio: false }
+    ];
+    var lastErr = null;
+    for (var i = 0; i < attempts.length; i++) {
+      try {
+        return await navigator.mediaDevices.getUserMedia(attempts[i]);
+      } catch (e) {
+        lastErr = e;
+        // Izin ditolak -> percuma mencoba constraint lain
+        if (e && (e.name === 'NotAllowedError' || e.name === 'SecurityError' || e.name === 'PermissionDeniedError')) break;
+      }
+    }
+    throw lastErr || new Error('getUserMedia gagal');
+  }
+
+  var camRetryMode = false;
+
+  function showCamError(text) {
+    var body = document.querySelector('.cam-modal-body');
+    if (!body) return;
+    var box = document.getElementById('popup-cam-error');
+    if (!box) {
+      box = document.createElement('div');
+      box.id = 'popup-cam-error';
+      box.style.cssText = 'position:absolute;inset:0;z-index:3;display:flex;align-items:flex-start;padding:20px;color:#e2e8f0;font-size:12.5px;line-height:1.55;white-space:pre-line;overflow-y:auto;background:rgba(9,13,22,.94);text-align:left;';
+      body.appendChild(box);
+    }
+    box.textContent = text;
+    box.style.display = 'flex';
+  }
+
+  function hideCamError() {
+    var box = document.getElementById('popup-cam-error');
+    if (box) box.style.display = 'none';
+  }
+
+  function setSnapMode(retry) {
+    camRetryMode = !!retry;
+    var b = document.getElementById('btn-snap-photo');
+    if (b) b.innerText = retry ? 'Coba Lagi' : 'Baca Sekarang';
+  }
+
+  async function diagnoseCamera(err, elapsedMs) {
+    var d = { name: (err && err.name) || '', msg: (err && err.message) || '', secure: !!window.isSecureContext, ms: elapsedMs, policy: null, perm: null };
+    try { d.framed = window.self !== window.top; } catch (e) { d.framed = true; }
+    var ua = navigator.userAgent || '';
+    d.inApp = /FBAN|FBAV|Instagram|Line\/|WhatsApp|MicroMessenger|Telegram|GSA\/|; wv\)/i.test(ua);
+    try {
+      var pp = document.permissionsPolicy || document.featurePolicy;
+      if (pp && pp.allowsFeature) d.policy = pp.allowsFeature('camera');
+    } catch (e) {}
+    try {
+      if (navigator.permissions && navigator.permissions.query) {
+        var st = await navigator.permissions.query({ name: 'camera' });
+        d.perm = st.state;
+      }
+    } catch (e) {}
+
+    var L = ['KAMERA TIDAK BISA DIBUKA', ''];
+    if (!d.secure) {
+      L.push('• Halaman harus dibuka lewat HTTPS.');
+    } else if (d.inApp) {
+      L.push('• Link dibuka di dalam aplikasi lain (WhatsApp / Line / dll). Salin link lalu buka di Chrome (Android) atau Safari (iPhone).');
+    } else if (d.policy === false && d.framed) {
+      L.push('• Kamera diblokir karena halaman ini tertanam di halaman lain (iframe) tanpa izin kamera. Buka aplikasi lewat link yang di-host langsung, bukan lewat script.google.com.');
+    } else if (d.perm === 'denied' || d.name === 'NotAllowedError' || d.name === 'PermissionDeniedError' || d.name === 'SecurityError') {
+      L.push('• Izin kamera untuk situs ini sedang DITOLAK / diblokir.');
+      L.push('');
+      L.push('Android (Chrome): ketuk ikon gembok / pengaturan di samping alamat → Izin → Kamera → Izinkan, lalu muat ulang halaman.');
+      L.push('iPhone (Safari): ketuk "aA" di address bar → Pengaturan Situs Web → Kamera → Izinkan, lalu muat ulang.');
+      L.push('Jika masih gagal: Pengaturan HP → Aplikasi → Chrome / Safari → Izin → Kamera → Izinkan.');
+    } else if (d.name === 'NotFoundError' || d.name === 'DevicesNotFoundError') {
+      L.push('• Kamera tidak ditemukan di perangkat ini.');
+    } else if (d.name === 'NotReadableError' || d.name === 'TrackStartError') {
+      L.push('• Kamera sedang dipakai aplikasi lain. Tutup aplikasi kamera / video call, lalu tekan Coba Lagi.');
+    } else {
+      L.push('• Kamera gagal dibuka. Tekan Coba Lagi, atau muat ulang halaman.');
+    }
+    L.push('');
+    L.push('Detail teknis: ' + (d.name || '-') + ' | policy=' + d.policy + ' | izin=' + d.perm + ' | iframe=' + d.framed + ' | ' + d.ms + 'ms');
+    return L.join('\n');
+  }
+
+  async function cameraFailed(err, elapsedMs) {
+    camOpenToken++;
+    stopMediaOnly();
+    var modal = document.getElementById('camera-popup-modal');
+    var hint = document.getElementById('popup-cam-hint');
+    if (modal) modal.classList.remove('hidden');
+    if (hint) hint.innerText = 'Kamera gagal dibuka';
+    setSnapMode(true);
+    var text = await diagnoseCamera(err, elapsedMs || 0);
+    showCamError(text);
+  }
+
+  function scannerOrigin() {
+    try { return new URL(SCANNER_URL).origin; } catch (e) { return ''; }
+  }
+
+  // Buka scanner di jendela terpisah (di luar iframe Apps Script -> kamera tidak diblokir).
+  // PENTING: dipanggil langsung dari klik user agar pop-up tidak diblokir browser.
+  function openExternalScanner() {
+    closePopupCamera();
+
+    if (scannerWin && !scannerWin.closed) {
+      try { scannerWin.focus(); return; } catch (e) {}
+    }
+
+    var url = SCANNER_URL + (SCANNER_URL.indexOf('?') > -1 ? '&' : '?') +
+      'o=' + encodeURIComponent(window.location.origin || '');
+    if (APP_EXEC_URL) url += '&back=' + encodeURIComponent(APP_EXEC_URL);
+
+    var w = null;
+    try { w = window.open(url, 'agres_scanner'); } catch (e) {}
+    if (!w) {
+      setScanStatus('Pop-up diblokir browser. Izinkan pop-up untuk situs ini lalu tekan <b>Pop-Up Live Camera</b>.', true);
+      openCustomModal('Pop-up Diblokir', 'Izinkan pop-up untuk situs ini di pengaturan browser, lalu tekan tombol Pop-Up Live Camera lagi.', false);
+      return;
+    }
+    scannerWin = w;
+    setScanStatus('Scanner terbuka di jendela baru.<br>Hasil scan tampil di jendela scanner.', false);
+  }
+
+  // Terima hasil scan dari jendela scanner
+  window.addEventListener('message', function(ev) {
+    if (!SCANNER_URL) return;
+    if (ev.origin !== scannerOrigin()) return;
+    var d = ev.data || {};
+    if (d.type === 'AGRES_READY') {
+      scannerWin = ev.source;
+    } else if (d.type === 'AGRES_SCAN' && d.code) {
+      scannerWin = ev.source;
+      handleScannedValue(d.code, ev.source);
+    }
+  });
+
+  async function openPopupCamera() {
+    if (SCANNER_URL) { openExternalScanner(); return; }
+    if (liveBlocked) { document.getElementById('qr-file-input').click(); return; }
+    stopMediaOnly();
+    var myToken = ++camOpenToken;
+
+    var modal = document.getElementById('camera-popup-modal');
+    var hint = document.getElementById('popup-cam-hint');
+    var videoEl = document.getElementById('popup-video');
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      return cameraFailed({ name: window.isSecureContext ? 'NotSupported' : 'SecurityError' }, 0);
+    }
+
+    modal.classList.remove('hidden');
+    hideCamError();
+    setSnapMode(false);
+    hint.innerText = 'Menyalakan kamera...';
+    popupScanActive = true;
+    scanProcessing = false;
+
+    var stream;
+    var t0 = Date.now();
+    try {
+      stream = await requestCameraStream();
+    } catch (err) {
+      if (myToken !== camOpenToken) return;
+      return cameraFailed(err, Date.now() - t0);
+    }
+
+    // Jika selama menunggu izin user sudah menutup / membuka ulang, matikan stream ini
+    if (myToken !== camOpenToken || !popupScanActive) {
+      stream.getTracks().forEach(function(t) { t.stop(); });
+      return;
+    }
+
+    popupStream = stream;
+    videoEl.setAttribute('playsinline', '');
+    videoEl.setAttribute('muted', '');
+    videoEl.muted = true;
+    videoEl.srcObject = popupStream;
+
+    try {
+      await videoEl.play();
+    } catch (e) {
+      // Autoplay ditolak: coba sekali lagi, kalau tetap gagal biarkan (video biasanya tetap jalan)
+      try { await videoEl.play(); } catch (e2) {}
+    }
+    if (myToken !== camOpenToken || !popupScanActive) return;
+
+    var native = await getNativeDetector();
+    if (!native && !window.jsQR) {
+      hint.innerText = 'Pemindai otomatis tidak tersedia. Tekan "Jepret Foto QR".';
+      return;
+    }
+    hint.innerText = 'Kamera aktif • Arahkan QR ke dalam kotak';
+
+    var scanTick = async function() {
+      if (!popupScanActive || myToken !== camOpenToken) return;
+      var now = Date.now();
+      // batasi ~8x per detik agar HP tidak panas
+      if (now - lastDecodeAt >= 120 && videoEl.readyState >= 2 && videoEl.videoWidth > 0 && !scanProcessing) {
+        lastDecodeAt = now;
+        var val = await decodeSource(videoEl, videoEl.videoWidth, videoEl.videoHeight);
+        if (val && popupScanActive && myToken === camOpenToken && !scanProcessing) {
+          if (navigator.vibrate) navigator.vibrate(120);
+          reopenCamAfterModal = true;
+          closePopupCamera();
+          handleScannedValue(val);
+          return;
+        }
+      }
+      popupLoopId = requestAnimationFrame(scanTick);
+    };
+    popupLoopId = requestAnimationFrame(scanTick);
+  }
+
+  function stopMediaOnly() {
+    popupScanActive = false;
+    if (popupLoopId) {
+      cancelAnimationFrame(popupLoopId);
+      popupLoopId = null;
+    }
+    if (popupStream) {
+      var tracks = popupStream.getTracks();
+      for (var i = 0; i < tracks.length; i++) {
+        tracks[i].stop();
+      }
+      popupStream = null;
+    }
+    var videoEl = document.getElementById('popup-video');
+    if (videoEl) {
+      try { videoEl.pause(); } catch (e) {}
+      videoEl.srcObject = null;
+    }
+  }
+
+  function closePopupCamera() {
+    camOpenToken++;
+    stopMediaOnly();
+    var modal = document.getElementById('camera-popup-modal');
+    if (modal) modal.classList.add('hidden');
+    hideCamError();
+  }
+
+  // Tombol "Jepret Foto QR": ambil frame dari video yang sedang jalan dan decode.
+  async function snapFrameAndDecode() {
+    var videoEl = document.getElementById('popup-video');
+    var hint = document.getElementById('popup-cam-hint');
+
+    if (!popupStream || !videoEl || videoEl.videoWidth === 0) {
+      hint.innerText = 'Kamera belum siap. Tunggu sebentar lalu coba lagi.';
+      return;
+    }
+
+    hint.innerText = 'Membaca frame...';
+    var val = await decodeSource(videoEl, videoEl.videoWidth, videoEl.videoHeight);
+    if (val) {
+      if (navigator.vibrate) navigator.vibrate(120);
+      reopenCamAfterModal = true;
+      closePopupCamera();
+      handleScannedValue(val);
+    } else {
+      hint.innerText = 'QR belum terbaca. Dekatkan, pastikan terang & tidak goyang, lalu coba lagi.';
+    }
+  }
+
+  function openGoogleExternalScanner() {
+    reopenCamAfterModal = false;
+    closePopupCamera();
+    var isAndroid = /Android/i.test(navigator.userAgent);
+    if (isAndroid) {
+      window.location.href = 'intent://scan/#Intent;scheme=zxing;package=com.google.zxing.client.android;S.browser_fallback_url=' +
+        encodeURIComponent('https://lens.google.com/') + ';end';
+    } else {
+      window.open('https://lens.google.com/', '_blank');
+    }
+  }
+
+  async function handlePhotoScan(event) {
+    var file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    var previewEl = document.getElementById('qr-preview-img');
+    previewEl.src = URL.createObjectURL(file);
+    previewEl.classList.remove('hidden');
+    setScanStatus('Auto-membaca QR Code...', false);
+
+    try {
+      var decoded = '';
+
+      if (window.createImageBitmap) {
+        var bitmap = await createImageBitmap(file);
+        decoded = (await decodeSource(bitmap, bitmap.width, bitmap.height, 1280)) ||
+                  (await decodeSource(bitmap, bitmap.width, bitmap.height, 2000)) ||
+                  (await decodeSource(bitmap, bitmap.width, bitmap.height, 640));
+        if (bitmap.close) bitmap.close();
+      }
+
+      if (!decoded && window.Html5Qrcode) {
+        var decoderEl = document.getElementById('qr-file-decoder');
+        decoderEl.innerHTML = '';
+        var qrReader = new Html5Qrcode('qr-file-decoder', false);
+        try {
+          decoded = await qrReader.scanFile(file, true);
+        } finally {
+          try { await qrReader.clear(); } catch (e) {}
+        }
+      }
+
+      if (decoded) {
+        setScanStatus('QR terbaca: ' + esc(decoded), false);
+        if (liveBlocked) reopenCamAfterModal = true; // setelah hasil ditutup, kamera foto terbuka lagi
+        handleScannedValue(decoded);
+      } else {
+        setScanStatus('QR tidak terbaca. Foto lebih dekat & terang, lalu tekan <b>SCAN QR</b> lagi.', true);
+        showToast('QR belum terbaca, coba foto lagi');
+      }
+    } catch (err) {
+      setScanStatus('QR tidak terbaca di foto. Coba dekatkan/terangi atau ketik kode.', true);
+    } finally {
+      event.target.value = '';
+    }
+  }
+
+  function submitManualCode() {
+    var code = document.getElementById('manual-code').value.trim();
+    if (!code) {
+      return openCustomModal('Kode Kosong', 'Masukkan kode QR / User ID terlebih dahulu.', false);
+    }
+    handleScannedValue(code);
+    document.getElementById('manual-code').value = '';
+  }
+
+  function replyToScanner(srcWin, payload) {
+    if (!srcWin || srcWin.closed) return false;
+    try {
+      payload.type = 'AGRES_RESULT';
+      srcWin.postMessage(payload, scannerOrigin() || '*');
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function handleScannedValue(rawCode, srcWin) {
+    var code = String(rawCode || '').trim();
+    if (!code || !currentUser) return;
+    if (scanProcessing) return;
+    scanProcessing = true;
+
+    showToast('Memproses: ' + code);
+    google.script.run
+      .withSuccessHandler(function(res) {
+        scanProcessing = false;
+        res = res || { success: false, title: 'Gagal', message: 'Respon server kosong.' };
+
+        var sent = replyToScanner(srcWin, { success: !!res.success, title: res.title, message: res.message });
+        if (!sent) openCustomModal(res.title, res.message, res.success);
+        // Mode Alat Scan: hasil sukses tertutup sendiri agar bisa langsung tembak berikutnya
+        if (!sent && hwMode && res.success) {
+          window._hwCloseTimer = setTimeout(closeCustomModal, 2500);
+        }
+
+        silentRefreshState();
+        if (currentUser && currentUser.role === 'LEADER') loadLeaderMonitor();
+      })
+      .withFailureHandler(function(err) {
+        scanProcessing = false;
+        reopenCamAfterModal = false;
+        var msg = (err && err.message) || 'Gagal menghubungi server. Coba scan ulang.';
+        var sent = replyToScanner(srcWin, { success: false, title: 'Koneksi Bermasalah', message: msg });
+        if (!sent) openCustomModal('Koneksi Bermasalah', msg, false);
+      })
+      .processBarcodeScan(code, currentUser);
+  }
+
+  // =====================================================
+  //  MONITOR & REPORT
+  // =====================================================
+  function loadLeaderMonitor() {
+    if (!currentUser || currentUser.role !== 'LEADER') return;
+
+    google.script.run.withSuccessHandler(function(roster) {
+      var sedang = (roster && roster.sedangIstirahat) || [];
+      var lewat = (roster && roster.seharusnyaMasuk) || [];
+      var sudah = (roster && roster.sudahIstirahat) || [];
+      var belum = (roster && roster.belumIstirahat) || [];
+
+      document.getElementById('cnt-sedang').innerText = sedang.length;
+      document.getElementById('cnt-lewat').innerText = lewat.length;
+      document.getElementById('cnt-sudah').innerText = sudah.length;
+      document.getElementById('cnt-belum').innerText = belum.length;
+
+      document.getElementById('list-sedang').innerHTML = sedang.length === 0
+        ? '<span>Tidak ada</span>'
+        : sedang.map(function(u) {
+            return '<div class="roster-item"><span><b>' + esc(u.nama) + '</b> (' + esc(u.jabatan) + ') • S' + esc(u.sesi) + '</span><b>' + esc(u.elapsedMin) + 'm</b></div>';
+          }).join('');
+
+      document.getElementById('list-lewat').innerHTML = lewat.length === 0
+        ? '<span style="color:var(--success);">Aman, tidak ada yang lewat batas</span>'
+        : lewat.map(function(u) {
+            return '<div class="roster-item" style="color:var(--danger);"><span><b>' + esc(u.nama) + '</b> (' + esc(u.jabatan) + ') • S' + esc(u.sesi) + '</span><b>' + esc(u.elapsedMin) + 'm</b></div>';
+          }).join('');
+
+      document.getElementById('list-sudah').innerHTML = sudah.length === 0
+        ? '<span>Belum ada yang menyelesaikan sesi</span>'
+        : sudah.map(function(u) {
+            return '<div class="roster-item"><span><b>' + esc(u.nama) + '</b> (' + esc(u.jabatan) + ') • ' + esc(u.sesiSelesai) + 'x</span><b style="color:var(--success);">Sisa ' + esc(u.sisaMenit) + ' mnt</b></div>';
+          }).join('');
+
+      document.getElementById('list-belum').innerHTML = belum.length === 0
+        ? '<span>Semua sudah mulai istirahat</span>'
+        : belum.map(function(u) {
+            return '<div class="roster-item"><span><b>' + esc(u.nama) + '</b> (' + esc(u.jabatan) + ')</span><span>Sisa ' + esc(u.sisaMenit) + ' mnt</span></div>';
+          }).join('');
+    }).getLeaderLiveRoster();
+
+    loadAnalytics();
+  }
+
+  function loadAnalytics() {
+    var period = document.getElementById('report-period').value;
+    google.script.run.withSuccessHandler(function(data) {
+      data = data || {};
+      document.getElementById('stat-avg').innerText = (data.avgDuration || 0) + ' mnt';
+      document.getElementById('stat-ontime').innerText = (data.onTimePercentage == null ? 100 : data.onTimePercentage) + '%';
+
+      var lateEl = document.getElementById('late-list');
+      if (!data.topLateUsers || data.topLateUsers.length === 0) {
+        lateEl.innerHTML = '<span style="color:var(--success);">Semua tepat waktu.</span>';
+      } else {
+        lateEl.innerHTML = data.topLateUsers.map(function(u, idx) {
+          return '<div class="roster-item"><span>' + (idx + 1) + '. <b>' + esc(u.nama) + '</b> <small>(' + esc(u.jabatan) + ')</small></span><strong style="color:var(--danger);">' + esc(u.count) + 'x Over</strong></div>';
+        }).join('');
+      }
+    }).getLeaderAnalytics(period);
+  }
+})();
+</script>
+
+</body>
+</html>
