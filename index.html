@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
@@ -452,12 +452,105 @@
   }
 
   .hidden { display: none !important; }
+
+  /* ===== TAMBAHAN: gerbang jam mulai, laporan, cetak ===== */
+  .app-shell.wide { max-width: 1100px; }
+  .tab-panel.scroll { overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+  .gate-card {
+    flex: 1 1 auto; min-height: 0; background: var(--navy); color: #fff; border-radius: 12px; padding: 16px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px;
+  }
+  .gate-lock { font-size: 34px; line-height: 1; }
+  .gate-title { font-size: 14px; font-weight: 800; }
+  .gate-count { font-size: 38px; font-weight: 800; color: #fda4af; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .gate-sub { font-size: 11px; color: #cbd5e1; max-width: 260px; line-height: 1.4; }
+  .scan-gate-banner {
+    background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; border-radius: 8px;
+    font-size: 11px; font-weight: 700; padding: 6px 8px; margin-bottom: 6px; text-align: center;
+  }
+  #barcode-svg { max-width: 100%; height: 56px; margin-top: 6px; }
+
+  .rep-range { font-size: 11px; color: var(--muted); font-weight: 700; margin: 4px 0 8px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 6px; margin-bottom: 8px; }
+  .kpi { background: var(--bg); border-radius: 8px; padding: 7px 8px; }
+  .kpi small { display: block; font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .3px; }
+  .kpi strong { display: block; font-size: 18px; font-weight: 800; line-height: 1.2; }
+  .kpi span { display: block; font-size: 9.5px; color: var(--muted); }
+  .kpi.bad strong { color: var(--danger); }
+  .kpi.good strong { color: var(--success); }
+
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-bottom: 8px; }
+  .chart-box { border: 1px solid var(--border); border-radius: 10px; padding: 6px 8px; background: #fff; }
+  .chart-title { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .chart-canvas { position: relative; height: 170px; }
+
+  .seg { display: flex; gap: 4px; margin: 4px 0 6px; flex-wrap: wrap; }
+  .seg button { border: 1px solid #cbd5e1; background: #fff; color: var(--text); font-size: 10.5px; font-weight: 700; padding: 5px 10px; border-radius: 99px; cursor: pointer; }
+  .seg button.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .tbl-wrap { overflow: auto; max-height: 340px; border: 1px solid var(--border); border-radius: 8px; }
+  table.tbl { border-collapse: collapse; width: 100%; font-size: 10.5px; }
+  table.tbl th { position: sticky; top: 0; background: #1e293b; color: #fff; padding: 5px 6px; text-align: left; white-space: nowrap; }
+  table.tbl td { padding: 4px 6px; border-top: 1px solid var(--border); white-space: nowrap; }
+  table.tbl tr.bad td { background: #fef2f2; color: #991b1b; }
+  table.tbl td.num, table.tbl th.num { text-align: right; }
+  .tbl-note { font-size: 10px; color: var(--muted); padding: 6px; }
+
+  .prn-list { max-height: 300px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; margin: 6px 0; }
+  .prn-item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-top: 1px solid var(--border); font-size: 11px; cursor: pointer; }
+  .prn-item:first-child { border-top: none; }
+  .prn-item input { width: auto; margin: 0; }
+  .prn-item small { color: var(--muted); margin-left: auto; text-transform: uppercase; font-weight: 700; font-size: 9px; }
+  .hint { font-size: 10px; color: var(--muted); line-height: 1.4; margin-top: 6px; }
+
+  #print-area { display: none; }
+  @media print {
+    @page { size: A4; margin: 8mm; }
+    html, body { height: auto !important; overflow: visible !important; background: #fff !important; }
+    body.printing .app-shell, body.printing #toast, body.printing .modal-backdrop, body.printing .cam-modal { display: none !important; }
+    body.printing #print-area { display: block; color: #000; }
+
+    .pcards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 4mm; }
+    .pcard { border: 1px dashed #64748b; border-radius: 3mm; padding: 3mm; height: 58mm; break-inside: avoid; display: flex; gap: 3mm; }
+    .pcard-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .pcard-brand { font-size: 7pt; font-weight: 800; color: #e11d48; letter-spacing: .4px; }
+    .pcard-name { font-size: 11pt; font-weight: 800; margin-top: 1.5mm; line-height: 1.15; word-break: break-word; }
+    .pcard-id { font-size: 9pt; font-weight: 700; margin-top: 1mm; }
+    .pcard-jab { font-size: 8pt; color: #475569; text-transform: uppercase; }
+    .pcard-bar { margin-top: auto; }
+    .pcard-bar svg { width: 100%; height: 13mm; }
+    .pcard-qr { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .pcard-qr img, .pcard-qr canvas { width: 28mm !important; height: 28mm !important; }
+    .pcard-note { font-size: 6.5pt; color: #64748b; margin-top: 1mm; text-align: center; }
+
+    .pos-poster { text-align: center; padding-top: 12mm; }
+    .pos-poster h1 { font-size: 26pt; margin: 0 0 3mm; }
+    .pos-poster h2 { font-size: 15pt; margin: 0 0 8mm; color: #e11d48; }
+    .pos-qr { display: flex; justify-content: center; margin-bottom: 6mm; }
+    .pos-qr img, .pos-qr canvas { width: 90mm !important; height: 90mm !important; }
+    .pos-poster svg { width: 120mm; height: 30mm; }
+    .pos-poster ol { text-align: left; display: inline-block; font-size: 13pt; line-height: 1.7; margin-top: 8mm; }
+
+    .rep-print h1 { font-size: 16pt; margin: 0 0 1mm; }
+    .rep-print h3 { font-size: 11pt; margin: 5mm 0 1.5mm; }
+    .rep-print .sub { font-size: 9pt; color: #475569; margin-bottom: 3mm; }
+    .rep-print table { border-collapse: collapse; width: 100%; font-size: 8pt; }
+    .rep-print th, .rep-print td { border: 1px solid #94a3b8; padding: 1mm 1.5mm; text-align: left; }
+    .rep-print th { background: #e2e8f0; }
+    .rep-print .imgs { display: flex; gap: 3mm; margin: 2mm 0; }
+    .rep-print .imgs img { flex: 1; min-width: 0; max-width: 33%; border: 1px solid #cbd5e1; }
+  }
 </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <!-- jsQR: decoder cadangan untuk live camera (iOS/Firefox/WebView yang tidak punya BarcodeDetector) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
   <!-- html5-qrcode: cadangan terakhir untuk baca QR dari foto -->
   <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- JsBarcode: barcode Code128 di kartu staff -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
+  <!-- Chart.js & SheetJS (versi dikunci): grafik laporan dan export Excel -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="app-shell">
@@ -534,8 +627,8 @@
     <!-- VIEW LOGIN -->
     <div id="view-login" class="main-viewport" style="justify-content:center;">
       <div class="hero-banner" style="margin-bottom:8px;">
-        <div style="font-size:12px; font-weight:800; color:var(--brand-red);">SISTEM ISTIRAHAT 2 SESI</div>
-        <div style="font-size:11px; color:#475569; margin-top:2px;">Total kuota 60 menit • Maksimal 2 orang per divisi bersamaan</div>
+        <div id="login-banner-title" style="font-size:12px; font-weight:800; color:var(--brand-red);">SISTEM ISTIRAHAT</div>
+        <div id="login-banner-sub" style="font-size:11px; color:#475569; margin-top:2px;">Memuat aturan istirahat...</div>
       </div>
       <div class="card">
         <div class="card-title">Masuk Akun Karyawan</div>
@@ -564,11 +657,19 @@
           </div>
         </div>
 
+        <div class="gate-card hidden" id="gate-card">
+          <div class="gate-lock">&#128274;</div>
+          <div class="gate-title">Istirahat dimulai pukul <span id="gate-jam">12:00</span></div>
+          <div id="gate-countdown" class="gate-count">00:00:00</div>
+          <div class="gate-sub">Barcode belum bisa ditampilkan atau di-scan sebelum jam tersebut. Halaman ini terbuka otomatis saat waktunya tiba.</div>
+        </div>
+
         <div class="card card-grow" id="qr-standby-card">
           <div class="card-title" id="qr-instruction">Tunjukkan QR Code ke TL / SPV</div>
           <div class="qr-wrapper">
             <div id="qrcode-box"></div>
             <div id="qr-user-label" style="font-size:12px; font-weight:800; margin-top:6px;">-</div>
+            <svg id="barcode-svg"></svg>
           </div>
           <div style="text-align:center; font-size:10px; color:var(--muted);">
             Otomatis memulai hitung durasi setelah di-scan
@@ -592,6 +693,7 @@
       <div id="tab-scanner" class="tab-panel hidden">
         <div class="card card-grow">
           <div class="card-title">Pemindai Barcode &amp; QR Code</div>
+          <div id="scan-gate-banner" class="scan-gate-banner hidden"></div>
           <div class="scanner-stage">
             <div class="barcode-frame">
               <span class="corner-guide tl"></span>
@@ -691,6 +793,64 @@
         </div>
       </div>
 
+      <!-- TAB 4: LAPORAN (LEADER) -->
+      <div id="tab-report" class="tab-panel scroll hidden">
+        <div class="card">
+          <div class="row-between" style="gap:6px; flex-wrap:wrap;">
+            <span class="card-title" style="margin-bottom:0;">Laporan Istirahat</span>
+            <div class="btn-row" style="width:auto; gap:4px; flex-wrap:wrap;">
+              <select id="rep-period" style="width:auto; margin-bottom:0; padding:5px 8px; font-size:11px;">
+                <option value="DAILY">Harian</option>
+                <option value="WEEKLY">Mingguan</option>
+                <option value="MONTHLY">Bulanan</option>
+              </select>
+              <input type="date" id="rep-date" style="width:auto; margin-bottom:0; padding:5px 8px; font-size:11px;">
+              <button type="button" class="btn btn-gold" id="btn-rep-load" style="width:auto; padding:5px 10px; font-size:11px;">Tampilkan</button>
+            </div>
+          </div>
+          <div id="rep-range" class="rep-range">-</div>
+          <div id="rep-kpi" class="kpi-grid"></div>
+          <div class="chart-grid">
+            <div class="chart-box"><div class="chart-title" id="ch-main-title">Menit &amp; Sesi per Hari</div><div class="chart-canvas"><canvas id="ch-main"></canvas></div></div>
+            <div class="chart-box"><div class="chart-title">Menit per Divisi</div><div class="chart-canvas"><canvas id="ch-divisi"></canvas></div></div>
+            <div class="chart-box"><div class="chart-title">Komposisi Sesi</div><div class="chart-canvas"><canvas id="ch-sesi"></canvas></div></div>
+          </div>
+          <div class="seg" id="rep-seg">
+            <button type="button" data-view="detail" class="active">Detail</button>
+            <button type="button" data-view="staff">Per Staff</button>
+            <button type="button" data-view="hari">Per Hari</button>
+            <button type="button" data-view="divisi">Per Divisi</button>
+          </div>
+          <div class="tbl-wrap" id="rep-table"><div class="tbl-note">Belum ada data.</div></div>
+          <div class="btn-row" style="margin-top:8px; flex-wrap:wrap;">
+            <button type="button" class="btn btn-primary" id="btn-exp-xlsx" style="flex:1;">Export Excel</button>
+            <button type="button" class="btn btn-outline" id="btn-exp-csv" style="flex:1;">Export CSV</button>
+            <button type="button" class="btn btn-outline" id="btn-exp-print" style="flex:1;">Cetak / PDF</button>
+          </div>
+          <div class="hint">CSV memakai pemisah titik koma (;). Jika kolom tidak rapi di Excel, pakai Export Excel.</div>
+        </div>
+      </div>
+
+      <!-- TAB 5: CETAK BARCODE (LEADER) -->
+      <div id="tab-print" class="tab-panel scroll hidden">
+        <div class="card">
+          <div class="card-title">Cetak Barcode Staff</div>
+          <div class="btn-row">
+            <select id="prn-jabatan"><option value="">Semua divisi</option></select>
+            <input type="text" id="prn-search" placeholder="Cari nama / ID" autocomplete="off">
+          </div>
+          <label style="font-size:11px; font-weight:700; display:flex; align-items:center; gap:6px;">
+            <input type="checkbox" id="prn-all" style="width:auto; margin:0;"> Pilih semua yang tampil <span id="prn-count" style="color:var(--muted);">(0 dipilih)</span>
+          </label>
+          <div id="prn-list" class="prn-list"><div class="tbl-note">Memuat daftar staff...</div></div>
+          <div class="btn-row">
+            <button type="button" class="btn btn-rose" id="btn-print-cards">Cetak Kartu Barcode</button>
+            <button type="button" class="btn btn-gold" id="btn-print-pos">Cetak Barcode POS</button>
+          </div>
+          <div class="hint">Kartu berisi QR dan barcode Code128 dari User ID (2 kartu per baris, kertas A4). Barcode POS adalah poster untuk ditempel di area istirahat agar staff bisa scan sendiri.</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- BOTTOM NAV -->
@@ -704,30 +864,64 @@
         <span>Scan QR</span>
       </div>
       <div class="nav-item leader-only hidden" data-tab="monitor" id="nav-monitor">
-        <span class="nav-icon">RPT</span>
-        <span>Report</span>
+        <span class="nav-icon">MON</span>
+        <span>Monitor</span>
+      </div>
+      <div class="nav-item leader-only hidden" data-tab="report" id="nav-report">
+        <span class="nav-icon">LAP</span>
+        <span>Laporan</span>
+      </div>
+      <div class="nav-item leader-only hidden" data-tab="print" id="nav-print">
+        <span class="nav-icon">CTK</span>
+        <span>Cetak</span>
       </div>
     </div>
   </div>
 
+  <div id="print-area"></div>
+
   <script>
-// ===== Pengganti google.script.run -> memanggil Apps Script lewat fetch =====
+// ===== Pengganti google.script.run -> memanggil Apps Script lewat fetch (dengan token sesi) =====
 (function () {
-  var API_URL = 'https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec';   // WAJIB DIISI: URL Web App Apps Script yang berakhiran /exec
+  var API_URL = '';   // WAJIB DIISI: URL Web App Apps Script yang berakhiran /exec
+  var KEY = 'AGRES_BREAK_SESSION_V12';
+
+  function getToken() {
+    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); return (s && s.token) || ''; } catch (e) { return ''; }
+  }
+  function clearSession() { try { localStorage.removeItem(KEY); } catch (e) {} }
+
+  function handleError(j, fail) {
+    var err = { message: (j && j.error) || 'Respon server tidak valid', code: (j && j.code) || '' };
+    if (err.code === 'AUTH') {
+      clearSession();
+      if (window.BRK_onSessionExpired) window.BRK_onSessionExpired(err.message);
+      return;
+    }
+    if (fail) fail(err);
+    else if (window.BRK_onApiError) window.BRK_onApiError(err.message);
+  }
 
   function call(fn, args, ok, fail) {
     if (!API_URL) {
-      setTimeout(function () { if (fail) fail({ message: 'API_URL belum diisi di index.html' }); }, 0);
+      setTimeout(function () { handleError({ error: 'API_URL belum diisi di index.html' }, fail); }, 0);
       return;
     }
-    fetch(API_URL, { method: 'POST', body: JSON.stringify({ fn: fn, args: args }) })
+    var ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    var timer = setTimeout(function () { if (ctrl) ctrl.abort(); }, 90000);
+    fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({ fn: fn, args: args, token: getToken() }),
+      signal: ctrl ? ctrl.signal : undefined
+    })
       .then(function (r) { return r.json(); })
       .then(function (j) {
-        if (j && j.ok) { if (ok) ok(j.data); }
-        else if (fail) fail({ message: (j && j.error) || 'Respon server tidak valid' });
+        clearTimeout(timer);
+        if (j && j.ok) { if (ok) ok(j.data); } else handleError(j, fail);
       })
       .catch(function (e) {
-        if (fail) fail({ message: 'Gagal menghubungi server: ' + ((e && e.message) || e) });
+        clearTimeout(timer);
+        handleError({ error: (e && e.name === 'AbortError') ? 'Server terlalu lama merespons. Coba lagi.' : 'Gagal menghubungi server. Periksa koneksi internet.' }, fail);
       });
   }
 
@@ -751,11 +945,11 @@
   // URL halaman scanner.html yang sudah di-host (GitHub Pages / Netlify / dll), HTTPS.
   var SCANNER_URL = '';   // contoh: 'https://namauser.github.io/agres-scanner/scanner.html'
   // URL Web App Apps Script (yang berakhiran /exec). Dipakai untuk mode cadangan (redirect).
-  var APP_EXEC_URL = '';  // https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec'
+  var APP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec';  // contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // =======================================================
   var scannerWin = null;
 
-  var STORAGE_KEY = 'AGRES_BREAK_SESSION_V11';
+  var STORAGE_KEY = 'AGRES_BREAK_SESSION_V12';
   var currentUser = null;
   var sysConfig = {};
   var timerInterval = null;
@@ -802,7 +996,7 @@
     }
 
     var btnLogout = document.getElementById('btn-logout');
-    if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+    if (btnLogout) btnLogout.addEventListener('click', function() { handleLogout(); });
 
     var btnCloseModal = document.getElementById('btn-close-modal');
     if (btnCloseModal) btnCloseModal.addEventListener('click', closeCustomModal);
@@ -902,19 +1096,10 @@
       var a = document.activeElement;
       if (!a || (a.tagName !== 'INPUT' && a.tagName !== 'SELECT' && a.tagName !== 'TEXTAREA')) focusHwInput();
     }, 1000);
-    try {
-      var saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('AGRES_BREAK_SESSION_V10');
-      if (saved) {
-        var parsed = JSON.parse(saved);
-        if (parsed && parsed.user && parsed.user.userId) {
-          currentUser = parsed.user;
-          sysConfig = parsed.config || {};
-          initLoggedInUI();
-          silentRefreshState();
-          checkUrlScanParam();
-        }
-      }
-    } catch (e) {}
+    restoreSession();
+    loadPublicConfig();
+    initReportControls();
+    initPrintControls();
   });
 
   function applyHwMode() {
@@ -1012,7 +1197,7 @@
   function closeCustomModal() {
     document.getElementById('custom-modal').classList.add('hidden');
     // Scan berurutan: setelah hasil ditutup, kamera langsung nyala lagi
-    if (reopenCamAfterModal && currentUser && currentUser.role === 'LEADER' && isScannerTabActive()) {
+    if (reopenCamAfterModal && currentUser && isScannerTabActive()) {
       reopenCamAfterModal = false;
       openPopupCamera();
     }
@@ -1048,9 +1233,7 @@
 
         currentUser = res.user;
         sysConfig = res.config || {};
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: currentUser, config: sysConfig }));
-        } catch (e) {}
+        saveSession_(res.token);
 
         initLoggedInUI();
         renderState(res.state);
@@ -1064,7 +1247,21 @@
       .loginUser(id, pin);
   }
 
-  function handleLogout() {
+  function handleLogout(silent, msg) {
+    if (!silent) {
+      google.script.run.withSuccessHandler(function() {}).withFailureHandler(function() {}).logout();
+    }
+    clearInterval(gateTimer);
+    gateTimer = null;
+    lastState = null;
+    clockOffset = 0;
+    reportData = null;
+    staffList = null;
+    prnSelected = {};
+    var shellEl0 = document.querySelector('.app-shell');
+    if (shellEl0) shellEl0.classList.remove('wide');
+    var pa0 = document.getElementById('print-area');
+    if (pa0) pa0.innerHTML = '';
     reopenCamAfterModal = false;
     try { if (scannerWin && !scannerWin.closed) scannerWin.close(); } catch (e) {}
     closePopupCamera();
@@ -1099,13 +1296,13 @@
     var homeNav = document.querySelector('.nav-item[data-tab="home"]');
     if (homeNav) homeNav.classList.add('active');
 
-    var tabs = ['home', 'scanner', 'monitor'];
+    var tabs = ['home', 'scanner', 'monitor', 'report', 'print'];
     for (var k = 0; k < tabs.length; k++) {
       document.getElementById('tab-' + tabs[k]).classList.toggle('hidden', k !== 0);
     }
 
     document.getElementById('view-login').classList.remove('hidden');
-    showToast('Anda telah keluar.');
+    showToast(msg || 'Anda telah keluar.');
   }
 
   function initLoggedInUI() {
@@ -1128,6 +1325,11 @@
         leaderEls[i].classList.remove('hidden');
       }
       document.getElementById('qr-instruction').innerText = 'QR Pribadi (Scan Pos di Tab Scan QR)';
+    } else if (String(sysConfig.ALLOW_SELF_SCAN || 'YA').toUpperCase() !== 'TIDAK') {
+      // staff boleh scan barcode POS sendiri
+      var navScan = document.getElementById('nav-scanner');
+      if (navScan) navScan.classList.remove('hidden');
+      document.getElementById('scan-status').innerHTML = 'Scan <b>barcode POS</b> untuk mulai / selesai istirahat.';
     }
 
     var qrBox = document.getElementById('qrcode-box');
@@ -1141,6 +1343,7 @@
       });
     }
     document.getElementById('qr-user-label').innerText = currentUser.userId + ' - ' + currentUser.nama;
+    try { if (window.JsBarcode) JsBarcode('#barcode-svg', String(currentUser.userId), { format: 'CODE128', width: 2, height: 44, displayValue: false, margin: 0 }); } catch (e) {}
 
     clearInterval(autoSyncInterval);
     autoSyncInterval = setInterval(silentRefreshState, 4000);
@@ -1150,7 +1353,7 @@
     if (!currentUser) return;
     google.script.run.withSuccessHandler(function(state) {
       if (currentUser) renderState(state);
-    }).getUserDailyStatus(currentUser.userId);
+    }).withFailureHandler(function() {}).getUserDailyStatus(currentUser.userId);
   }
 
   function showFinishQrModal() {
@@ -1162,6 +1365,8 @@
 
   function renderState(state) {
     if (!state || !currentUser) return;
+    lastState = state;
+    if (state.serverNow) clockOffset = state.serverNow - Date.now();
     var maxPerDivisi = Number(sysConfig.MAX_CONCURRENT || 2);
 
     document.getElementById('divisi-name-label').innerText = state.divisiName || currentUser.jabatan;
@@ -1177,7 +1382,7 @@
     }
 
     document.getElementById('quota-left').innerText = state.remainingMinutes + ' Menit';
-    document.getElementById('session-done').innerText = state.completedSessions + ' / 2';
+    document.getElementById('session-done').innerText = state.completedSessions + ' / ' + (state.maxSesi || sysConfig.MAX_SESI || 3);
 
     if (state.activeSession) {
       document.getElementById('active-sesi-num').innerText = state.activeSession.sesi;
@@ -1195,8 +1400,11 @@
       document.getElementById('qr-standby-card').classList.remove('hidden');
       document.getElementById('qr-instruction').innerText = currentUser.role === 'LEADER'
         ? 'QR Pribadi (Scan Pos di Tab Scan QR)'
-        : 'Tunjukkan QR Code ke TL / SPV';
+        : (String(sysConfig.ALLOW_SELF_SCAN || 'YA').toUpperCase() !== 'TIDAK'
+            ? 'Tunjukkan Barcode ke TL / SPV, atau scan Barcode POS'
+            : 'Tunjukkan QR Code ke TL / SPV');
     }
+    applyGateUI(state);
   }
 
   function startLiveCountdown(startTs, usedBeforeMin) {
@@ -1204,7 +1412,7 @@
     var maxQuota = Number(sysConfig.TOTAL_KUOTA_MENIT || 60);
 
     var tick = function() {
-      var diffSec = Math.max(0, Math.floor((Date.now() - startTs) / 1000));
+      var diffSec = Math.max(0, Math.floor((nowMs() - startTs) / 1000));   // jam server, bukan jam HP
       var mins = Math.floor(diffSec / 60);
       var secs = diffSec % 60;
 
@@ -1243,17 +1451,28 @@
     }
     if (el) el.classList.add('active');
 
-    var tabs = ['home', 'scanner', 'monitor'];
+    var tabs = ['home', 'scanner', 'monitor', 'report', 'print'];
     for (var j = 0; j < tabs.length; j++) {
       document.getElementById('tab-' + tabs[j]).classList.toggle('hidden', tabs[j] !== tabName);
     }
 
+    var shellEl = document.querySelector('.app-shell');
+    if (shellEl) shellEl.classList.toggle('wide', tabName === 'report' || tabName === 'print');
+
     if (tabName === 'monitor') {
       loadLeaderMonitor();
     }
+    if (tabName === 'report' && currentUser && currentUser.role === 'LEADER') {
+      if (!reportData) loadReport();
+    }
+    if (tabName === 'print' && currentUser && currentUser.role === 'LEADER') {
+      loadStaffList();
+    }
 
-    // === AUTO BUKA POP-UP KAMERA saat masuk tab Scan QR ===
-    if (tabName === 'scanner' && currentUser && currentUser.role === 'LEADER') {
+    // === AUTO BUKA POP-UP KAMERA saat masuk tab Scan QR (semua peran; staff = scan barcode POS) ===
+    if (tabName === 'scanner' && currentUser) {
+      updateScanGateBanner();
+      if (gateClosed()) return;
       if (hwMode) {
         focusHwInput();
         setTimeout(focusHwInput, 200);
@@ -1489,6 +1708,11 @@
   });
 
   async function openPopupCamera() {
+    if (gateClosed()) {
+      setScanStatus(esc(gateMessage()), true);
+      openCustomModal('Belum Waktunya Istirahat', gateMessage(), false);
+      return;
+    }
     if (SCANNER_URL) { openExternalScanner(); return; }
     if (liveBlocked) { document.getElementById('qr-file-input').click(); return; }
     stopMediaOnly();
@@ -1696,6 +1920,10 @@
   function handleScannedValue(rawCode, srcWin) {
     var code = String(rawCode || '').trim();
     if (!code || !currentUser) return;
+    if (gateClosed()) {
+      openCustomModal('Belum Waktunya Istirahat', gateMessage(), false);
+      return;
+    }
     if (scanProcessing) return;
     scanProcessing = true;
 
@@ -1787,6 +2015,479 @@
       }
     }).getLeaderAnalytics(period);
   }
+
+  // =====================================================
+  //  SESI, KONFIGURASI PUBLIK & PENANGANAN ERROR
+  // =====================================================
+  function saveSession_(token) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ user: currentUser, config: sysConfig, token: token })); } catch (e) {}
+  }
+
+  window.BRK_onApiError = function(msg) { showToast('\u26A0 ' + msg); };
+  window.BRK_onSessionExpired = function(msg) {
+    if (!currentUser) return;
+    handleLogout(true);
+    openCustomModal('Sesi Berakhir', msg || 'Silakan login ulang.', false);
+  };
+
+  function restoreSession() {
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch (e) {}
+    if (!saved || !saved.token) return;
+    google.script.run
+      .withSuccessHandler(function(res) {
+        if (!res || !res.success) return;
+        currentUser = res.user;
+        sysConfig = res.config || {};
+        saveSession_(saved.token);
+        initLoggedInUI();
+        renderState(res.state);
+        checkUrlScanParam();
+      })
+      .withFailureHandler(function() {})
+      .whoami();
+  }
+
+  function loadPublicConfig() {
+    google.script.run
+      .withSuccessHandler(function(cfg) {
+        if (!cfg) return;
+        var sub = document.getElementById('login-banner-sub');
+        var title = document.getElementById('login-banner-title');
+        if (sub) sub.innerText = 'Total kuota ' + cfg.TOTAL_KUOTA_MENIT + ' menit \u2022 Maks ' + cfg.MAX_SESI + ' sesi \u2022 Maks ' + cfg.MAX_CONCURRENT + ' orang per divisi \u2022 Mulai ' + cfg.JAM_MULAI;
+        if (title) title.innerText = 'SISTEM ISTIRAHAT ' + cfg.MAX_SESI + ' SESI';
+      })
+      .withFailureHandler(function() {})
+      .getPublicConfig();
+  }
+
+  // =====================================================
+  //  GERBANG JAM MULAI ISTIRAHAT
+  // =====================================================
+  var lastState = null;
+  var clockOffset = 0;
+  var gateTimer = null;
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function nowMs() { return Date.now() + clockOffset; }
+  function gateClosed() { return !!(lastState && lastState.startsAtTs && nowMs() < lastState.startsAtTs); }
+
+  function fmtCountdown(ms) {
+    var s = Math.max(0, Math.ceil(ms / 1000));
+    return pad2(Math.floor(s / 3600)) + ':' + pad2(Math.floor((s % 3600) / 60)) + ':' + pad2(s % 60);
+  }
+
+  function gateMessage() {
+    return 'Istirahat dimulai pukul ' + ((lastState && lastState.jamMulai) || '12:00') + '. Barcode belum bisa ditampilkan atau di-scan sebelum jam tersebut.';
+  }
+
+  function updateScanGateBanner() {
+    var b = document.getElementById('scan-gate-banner');
+    if (!b) return;
+    if (gateClosed()) {
+      b.innerText = 'Belum jam ' + ((lastState && lastState.jamMulai) || '12:00') + '. Scan barcode baru bisa dilakukan setelah jam tersebut.';
+      b.classList.remove('hidden');
+    } else {
+      b.classList.add('hidden');
+    }
+  }
+
+  function applyGateUI(state) {
+    var gate = document.getElementById('gate-card');
+    clearInterval(gateTimer);
+    gateTimer = null;
+    var closed = gateClosed() && !state.activeSession;
+    if (closed) {
+      document.getElementById('gate-jam').innerText = state.jamMulai || '12:00';
+      document.getElementById('qr-standby-card').classList.add('hidden');
+      document.getElementById('timer-running-card').classList.add('hidden');
+      gate.classList.remove('hidden');
+      var tick = function() {
+        var left = lastState.startsAtTs - nowMs();
+        document.getElementById('gate-countdown').innerText = fmtCountdown(left);
+        if (left <= 0) {
+          clearInterval(gateTimer);
+          gateTimer = null;
+          silentRefreshState();
+        }
+      };
+      tick();
+      gateTimer = setInterval(tick, 1000);
+    } else {
+      gate.classList.add('hidden');
+    }
+    updateScanGateBanner();
+  }
+
+  // =====================================================
+  //  LAPORAN (harian / mingguan / bulanan) + GRAFIK + EXPORT
+  // =====================================================
+  var reportData = null;
+  var reportCharts = {};
+  var reportView = 'detail';
+  var DETAIL_LIMIT = 300;
+
+  function todayLocal_() {
+    var d = new Date();
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  function initReportControls() {
+    var per = document.getElementById('rep-period');
+    var dt = document.getElementById('rep-date');
+    if (!per || !dt) return;
+
+    var applyType = function() {
+      var monthly = per.value === 'MONTHLY';
+      var cur = dt.value;
+      dt.type = monthly ? 'month' : 'date';
+      if (monthly) dt.value = cur ? cur.substring(0, 7) : todayLocal_().substring(0, 7);
+      else dt.value = cur ? (cur.length === 7 ? cur + '-01' : cur) : todayLocal_();
+    };
+    per.addEventListener('change', function() { applyType(); loadReport(); });
+    dt.addEventListener('change', loadReport);
+    applyType();
+
+    var on = function(id, fn) { var el = document.getElementById(id); if (el) el.addEventListener('click', fn); };
+    on('btn-rep-load', loadReport);
+    on('btn-exp-xlsx', exportExcel);
+    on('btn-exp-csv', exportCsv);
+    on('btn-exp-print', printReport);
+
+    var seg = document.getElementById('rep-seg');
+    if (seg) {
+      seg.addEventListener('click', function(e) {
+        var btn = e.target.closest ? e.target.closest('button[data-view]') : null;
+        if (!btn) return;
+        reportView = btn.getAttribute('data-view');
+        var all = seg.querySelectorAll('button');
+        for (var i = 0; i < all.length; i++) all[i].classList.toggle('active', all[i] === btn);
+        renderReportTable();
+      });
+    }
+  }
+
+  function loadReport() {
+    if (!currentUser || currentUser.role !== 'LEADER') return;
+    var per = document.getElementById('rep-period').value;
+    var anchor = document.getElementById('rep-date').value;
+    var box = document.getElementById('rep-range');
+    box.innerText = 'Memuat laporan...';
+    google.script.run
+      .withSuccessHandler(function(res) {
+        reportData = res;
+        renderReport();
+      })
+      .withFailureHandler(function(err) {
+        box.innerText = 'Gagal memuat laporan: ' + (err && err.message);
+      })
+      .getReport(per, anchor);
+  }
+
+  function renderReport() {
+    var r = reportData;
+    if (!r) return;
+    document.getElementById('rep-range').innerText = r.range.label + (r.truncated ? ' \u2022 detail dibatasi ' + r.rows.length + ' baris' : '');
+
+    var k = r.kpi;
+    var items = [
+      ['Total Sesi', k.totalSesi, 'sesi selesai', ''],
+      ['Total Menit', k.totalMenit, 'menit', ''],
+      ['Rata-rata', k.avgMenit, 'menit / sesi', ''],
+      ['Tepat Waktu', k.onTimePct + '%', k.overSesi + ' sesi over limit', k.onTimePct < 90 ? 'bad' : 'good'],
+      ['Hari Over Kuota', k.overHari, 'staff-hari > ' + r.maxQuota + ' mnt', k.overHari > 0 ? 'bad' : 'good'],
+      ['Partisipasi', k.partisipasiPct + '%', k.staffUnik + ' / ' + k.staffAktif + ' staff', '']
+    ];
+    document.getElementById('rep-kpi').innerHTML = items.map(function(it) {
+      return '<div class="kpi ' + it[3] + '"><small>' + esc(it[0]) + '</small><strong>' + esc(it[1]) + '</strong><span>' + esc(it[2]) + '</span></div>';
+    }).join('');
+
+    renderReportCharts();
+    renderReportTable();
+  }
+
+  function makeChart_(id, cfg) {
+    var el = document.getElementById(id);
+    if (!el || !window.Chart) return;
+    if (reportCharts[id]) { try { reportCharts[id].destroy(); } catch (e) {} }
+    reportCharts[id] = new Chart(el.getContext('2d'), cfg);
+  }
+
+  function renderReportCharts() {
+    var r = reportData;
+    var common = { responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } } };
+
+    if (r.range.period === 'DAILY') {
+      document.getElementById('ch-main-title').innerText = 'Jumlah Mulai Istirahat per Jam';
+      makeChart_('ch-main', {
+        type: 'bar',
+        data: { labels: r.perJam.map(function(x) { return x.jam + ':00'; }), datasets: [{ label: 'Sesi dimulai', data: r.perJam.map(function(x) { return x.jumlah; }), backgroundColor: '#e11d48' }] },
+        options: common
+      });
+    } else {
+      document.getElementById('ch-main-title').innerText = 'Menit & Sesi per Hari';
+      makeChart_('ch-main', {
+        type: 'bar',
+        data: {
+          labels: r.perHari.map(function(x) { return x.date.substring(8) + '/' + x.date.substring(5, 7); }),
+          datasets: [
+            { type: 'bar', label: 'Menit', data: r.perHari.map(function(x) { return x.menit; }), backgroundColor: '#e11d48', yAxisID: 'y' },
+            { type: 'line', label: 'Sesi', data: r.perHari.map(function(x) { return x.sesi; }), borderColor: '#0f172a', backgroundColor: '#0f172a', yAxisID: 'y1', tension: 0.25 }
+          ]
+        },
+        options: Object.assign({}, common, { scales: { y: { beginAtZero: true, position: 'left' }, y1: { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false } } } })
+      });
+    }
+
+    makeChart_('ch-divisi', {
+      type: 'bar',
+      data: { labels: r.perDivisi.map(function(x) { return x.jabatan; }), datasets: [{ label: 'Total menit', data: r.perDivisi.map(function(x) { return x.menit; }), backgroundColor: '#0284c7' }] },
+      options: Object.assign({}, common, { indexAxis: 'y' })
+    });
+
+    makeChart_('ch-sesi', {
+      type: 'doughnut',
+      data: { labels: r.perSesi.map(function(x) { return 'Sesi ' + x.sesi; }), datasets: [{ data: r.perSesi.map(function(x) { return x.jumlah; }), backgroundColor: ['#e11d48', '#f59e0b', '#0284c7', '#059669', '#7c3aed'] }] },
+      options: common
+    });
+  }
+
+  function tableHtml_(heads, rows, numCols, badFn) {
+    var h = '<table class="tbl"><thead><tr>' + heads.map(function(t, i) {
+      return '<th class="' + (numCols.indexOf(i) >= 0 ? 'num' : '') + '">' + esc(t) + '</th>';
+    }).join('') + '</tr></thead><tbody>';
+    rows.forEach(function(r) {
+      h += '<tr class="' + (badFn && badFn(r) ? 'bad' : '') + '">' + r.map(function(c, i) {
+        return '<td class="' + (numCols.indexOf(i) >= 0 ? 'num' : '') + '">' + esc(c) + '</td>';
+      }).join('') + '</tr>';
+    });
+    return h + '</tbody></table>';
+  }
+
+  function reportTables_() {
+    var r = reportData;
+    return {
+      detail: {
+        heads: ['Tanggal', 'ID', 'Nama', 'Divisi', 'Sesi', 'Mulai', 'Selesai', 'Menit', 'Status', 'Scan Mulai', 'Scan Selesai'],
+        rows: r.rows.map(function(x) { return [x.tanggal, x.userId, x.nama, x.jabatan, x.sesi, x.mulai, x.selesai, x.durasi, x.status, x.scannerStart, x.scannerFinish]; }),
+        num: [4, 7], bad: function(row) { return row[8] === 'OVER LIMIT'; }
+      },
+      staff: {
+        heads: ['ID', 'Nama', 'Divisi', 'Hari', 'Sesi', 'Total Menit', 'Rata-rata/Hari', 'Sesi Over', 'Hari Over'],
+        rows: r.perStaff.map(function(x) { return [x.userId, x.nama, x.jabatan, x.hari, x.sesi, x.menit, x.avgMenitPerHari, x.over, x.hariOver]; }),
+        num: [3, 4, 5, 6, 7, 8], bad: function(row) { return row[8] > 0; }
+      },
+      hari: {
+        heads: ['Tanggal', 'Sesi', 'Total Menit', 'Staff', 'Sesi Over'],
+        rows: r.perHari.map(function(x) { return [x.date, x.sesi, x.menit, x.orang, x.over]; }),
+        num: [1, 2, 3, 4], bad: function(row) { return row[4] > 0; }
+      },
+      divisi: {
+        heads: ['Divisi', 'Staff', 'Sesi', 'Total Menit', 'Rata-rata/Sesi'],
+        rows: r.perDivisi.map(function(x) { return [x.jabatan, x.orang, x.sesi, x.menit, x.avgMenit]; }),
+        num: [1, 2, 3, 4], bad: null
+      }
+    };
+  }
+
+  function renderReportTable() {
+    var box = document.getElementById('rep-table');
+    if (!reportData) { box.innerHTML = '<div class="tbl-note">Belum ada data.</div>'; return; }
+    var t = reportTables_()[reportView];
+    if (!t.rows.length) { box.innerHTML = '<div class="tbl-note">Tidak ada data pada periode ini.</div>'; return; }
+    var shown = reportView === 'detail' ? t.rows.slice(0, DETAIL_LIMIT) : t.rows;
+    var note = (reportView === 'detail' && t.rows.length > DETAIL_LIMIT)
+      ? '<div class="tbl-note">Menampilkan ' + DETAIL_LIMIT + ' dari ' + t.rows.length + ' baris. Gunakan Export untuk data lengkap.</div>' : '';
+    box.innerHTML = tableHtml_(t.heads, shown, t.num, t.bad) + note;
+  }
+
+  function reportFileName_(ext) {
+    var r = reportData;
+    return 'Laporan_Istirahat_' + r.range.period + '_' + r.range.from + (r.range.from === r.range.to ? '' : '_sd_' + r.range.to) + '.' + ext;
+  }
+
+  function downloadBlob_(blob, name) {
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  }
+
+  function exportExcel() {
+    if (!reportData) return showToast('Tampilkan laporan dulu.');
+    if (!window.XLSX) return openCustomModal('Export Gagal', 'Library Excel belum termuat. Periksa koneksi internet lalu muat ulang halaman.', false);
+    var r = reportData, T = reportTables_();
+    var wb = XLSX.utils.book_new();
+    var ringkas = [
+      ['LAPORAN ISTIRAHAT KARYAWAN'], [r.range.label], [],
+      ['Total sesi selesai', r.kpi.totalSesi], ['Total menit', r.kpi.totalMenit], ['Rata-rata menit / sesi', r.kpi.avgMenit],
+      ['% tepat waktu', r.kpi.onTimePct], ['Sesi over limit', r.kpi.overSesi], ['Hari over kuota (staff-hari)', r.kpi.overHari],
+      ['Staff unik', r.kpi.staffUnik], ['Staff aktif', r.kpi.staffAktif], ['% partisipasi', r.kpi.partisipasiPct],
+      ['Kuota per hari (menit)', r.maxQuota], ['Maks sesi per hari', r.maxSesi]
+    ];
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(ringkas), 'Ringkasan');
+    [['hari', 'Per Hari'], ['staff', 'Per Staff'], ['divisi', 'Per Divisi'], ['detail', 'Detail']].forEach(function(p) {
+      var t = T[p[0]];
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([t.heads].concat(t.rows)), p[1]);
+    });
+    XLSX.writeFile(wb, reportFileName_('xlsx'));
+  }
+
+  function csvCell_(v) {
+    v = String(v === null || v === undefined ? '' : v);
+    return /[";\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+
+  function exportCsv() {
+    if (!reportData) return showToast('Tampilkan laporan dulu.');
+    var t = reportTables_().detail;
+    var lines = [t.heads].concat(t.rows).map(function(row) { return row.map(csvCell_).join(';'); });
+    downloadBlob_(new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }), reportFileName_('csv'));
+  }
+
+  // =====================================================
+  //  CETAK (kartu barcode staff, barcode POS, laporan/PDF)
+  // =====================================================
+  function startPrint_() {
+    document.body.classList.add('printing');
+    setTimeout(function() { window.print(); }, 400);
+  }
+
+  window.addEventListener('afterprint', function() {
+    document.body.classList.remove('printing');
+    var area = document.getElementById('print-area');
+    if (area) area.innerHTML = '';
+  });
+
+  function printReport() {
+    if (!reportData) return showToast('Tampilkan laporan dulu.');
+    var r = reportData, T = reportTables_();
+    var area = document.getElementById('print-area');
+    var imgs = ['ch-main', 'ch-divisi', 'ch-sesi'].map(function(id) {
+      try { return reportCharts[id] ? '<img src="' + reportCharts[id].toBase64Image() + '">' : ''; } catch (e) { return ''; }
+    }).join('');
+    var kpi = '<table><tr><th>Total sesi</th><th>Total menit</th><th>Rata-rata/sesi</th><th>% tepat waktu</th><th>Sesi over</th><th>Hari over kuota</th><th>Partisipasi</th></tr><tr>' +
+      [r.kpi.totalSesi, r.kpi.totalMenit, r.kpi.avgMenit, r.kpi.onTimePct + '%', r.kpi.overSesi, r.kpi.overHari, r.kpi.partisipasiPct + '% (' + r.kpi.staffUnik + '/' + r.kpi.staffAktif + ')']
+        .map(function(v) { return '<td>' + esc(v) + '</td>'; }).join('') + '</tr></table>';
+    var det = T.detail.rows.slice(0, 400);
+    area.innerHTML = '<div class="rep-print"><h1>Laporan Istirahat Karyawan</h1><div class="sub">PT Agres Info Teknologi \u2022 ' + esc(r.range.label) + '</div>' + kpi +
+      '<div class="imgs">' + imgs + '</div>' +
+      '<h3>Per Divisi</h3>' + tableHtml_(T.divisi.heads, T.divisi.rows, [], null) +
+      '<h3>Per Staff</h3>' + tableHtml_(T.staff.heads, T.staff.rows, [], null) +
+      '<h3>Detail' + (T.detail.rows.length > 400 ? ' (400 baris pertama dari ' + T.detail.rows.length + ')' : '') + '</h3>' + tableHtml_(T.detail.heads, det, [], null) + '</div>';
+    startPrint_();
+  }
+
+  var staffList = null;
+  var prnSelected = {};
+
+  function initPrintControls() {
+    var on = function(id, ev, fn) { var el = document.getElementById(id); if (el) el.addEventListener(ev, fn); };
+    on('prn-search', 'input', renderStaffList);
+    on('prn-jabatan', 'change', renderStaffList);
+    on('prn-all', 'change', function() {
+      var chk = document.getElementById('prn-all').checked;
+      filteredStaff_().forEach(function(u) { prnSelected[u.userId] = chk; });
+      renderStaffList();
+    });
+    on('btn-print-cards', 'click', printCards);
+    on('btn-print-pos', 'click', printPos);
+    var list = document.getElementById('prn-list');
+    if (list) {
+      list.addEventListener('change', function(e) {
+        var id = e.target && e.target.getAttribute ? e.target.getAttribute('data-id') : null;
+        if (id) { prnSelected[id] = e.target.checked; updatePrnCount_(); }
+      });
+    }
+  }
+
+  function loadStaffList() {
+    if (staffList) { renderStaffList(); return; }
+    google.script.run
+      .withSuccessHandler(function(res) {
+        staffList = res || [];
+        var jabs = {};
+        staffList.forEach(function(u) { jabs[u.jabatan] = true; });
+        var sel = document.getElementById('prn-jabatan');
+        sel.innerHTML = '<option value="">Semua divisi</option>' + Object.keys(jabs).sort().map(function(j) {
+          return '<option value="' + esc(j) + '">' + esc(j) + '</option>';
+        }).join('');
+        renderStaffList();
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('prn-list').innerText = 'Gagal memuat daftar staff: ' + (err && err.message);
+      })
+      .getStaffList();
+  }
+
+  function filteredStaff_() {
+    var jab = document.getElementById('prn-jabatan').value;
+    var q = document.getElementById('prn-search').value.trim().toLowerCase();
+    return (staffList || []).filter(function(u) {
+      if (jab && u.jabatan !== jab) return false;
+      if (q && (u.nama + ' ' + u.userId + ' ' + u.jabatan).toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    });
+  }
+
+  function updatePrnCount_() {
+    var sel = Object.keys(prnSelected).filter(function(k) { return prnSelected[k]; }).length;
+    document.getElementById('prn-count').innerText = '(' + sel + ' dipilih)';
+  }
+
+  function renderStaffList() {
+    var box = document.getElementById('prn-list');
+    var items = filteredStaff_();
+    if (!items.length) { box.innerHTML = '<div class="tbl-note">Tidak ada staff yang cocok.</div>'; updatePrnCount_(); return; }
+    box.innerHTML = items.map(function(u) {
+      return '<label class="prn-item"><input type="checkbox" data-id="' + esc(u.userId) + '"' + (prnSelected[u.userId] ? ' checked' : '') + '>' +
+        '<span><b>' + esc(u.nama) + '</b> <span style="color:var(--muted)">' + esc(u.userId) + '</span></span><small>' + esc(u.jabatan) + '</small></label>';
+    }).join('');
+    updatePrnCount_();
+  }
+
+  function printCards() {
+    var picked = (staffList || []).filter(function(u) { return prnSelected[u.userId]; });
+    if (!picked.length) return openCustomModal('Belum Ada yang Dipilih', 'Centang staff yang kartunya mau dicetak.', false);
+    var area = document.getElementById('print-area');
+    area.innerHTML = '';
+    var wrap = document.createElement('div');
+    wrap.className = 'pcards';
+    picked.forEach(function(u) {
+      var card = document.createElement('div');
+      card.className = 'pcard';
+      card.innerHTML = '<div class="pcard-info"><div class="pcard-brand">PT AGRES INFO TEKNOLOGI \u2022 KARTU ISTIRAHAT</div>' +
+        '<div class="pcard-name">' + esc(u.nama) + '</div><div class="pcard-id">' + esc(u.userId) + '</div>' +
+        '<div class="pcard-jab">' + esc(u.jabatan) + '</div><div class="pcard-bar"><svg></svg></div></div>' +
+        '<div class="pcard-qr"><div class="qrbox"></div><div class="pcard-note">Tunjukkan saat istirahat</div></div>';
+      wrap.appendChild(card);
+      try { new QRCode(card.querySelector('.qrbox'), { text: String(u.userId), width: 110, height: 110, correctLevel: QRCode.CorrectLevel.M }); } catch (e) {}
+      try { JsBarcode(card.querySelector('svg'), String(u.userId), { format: 'CODE128', width: 1.6, height: 36, displayValue: false, margin: 0 }); } catch (e) {}
+    });
+    area.appendChild(wrap);
+    startPrint_();
+  }
+
+  function printPos() {
+    google.script.run
+      .withSuccessHandler(function(res) {
+        var code = res && res.code;
+        if (!code) return openCustomModal('Kode POS Belum Diisi', 'Isi POS_QR_SECRET di sheet Config terlebih dahulu.', false);
+        var area = document.getElementById('print-area');
+        area.innerHTML = '<div class="pos-poster"><h1>SCAN UNTUK ISTIRAHAT</h1><h2>PT AGRES INFO TEKNOLOGI</h2>' +
+          '<div class="pos-qr" id="pos-qr"></div><svg id="pos-bar"></svg>' +
+          '<ol><li>Buka aplikasi Break Monitor dan login.</li><li>Buka menu <b>Scan QR</b>.</li><li>Scan barcode ini untuk <b>MULAI</b> istirahat.</li><li>Scan lagi saat kembali untuk <b>SELESAI</b>.</li></ol></div>';
+        try { new QRCode(document.getElementById('pos-qr'), { text: String(code), width: 300, height: 300, correctLevel: QRCode.CorrectLevel.M }); } catch (e) {}
+        try { JsBarcode(document.getElementById('pos-bar'), String(code), { format: 'CODE128', width: 2, height: 60, displayValue: true, fontSize: 16, margin: 0 }); } catch (e) {}
+        startPrint_();
+      })
+      .withFailureHandler(function(err) { openCustomModal('Gagal', (err && err.message) || 'Tidak bisa mengambil kode POS.', false); })
+      .getPosCode();
+  }
+
 })();
 </script>
 
