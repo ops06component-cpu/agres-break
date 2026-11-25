@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Break Monitor • PT Agres Info Teknologi</title>
+  <script src="config.js"></script>
   <style>
   :root {
     --brand-red: #e11d48;
@@ -883,7 +884,9 @@
   <script>
 // ===== Pengganti google.script.run -> memanggil Apps Script lewat fetch (dengan token sesi) =====
 (function () {
-  var API_URL = 'https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec';   // WAJIB DIISI: URL Web App Apps Script yang berakhiran /exec
+  var API_URL = '';   // WAJIB DIISI: URL Web App Apps Script yang berakhiran /exec
+  // ATAU isi di file config.js (disarankan, supaya tidak hilang saat index.html diganti)
+  if (!API_URL && window.BREAK_CONFIG && window.BREAK_CONFIG.API_URL) API_URL = String(window.BREAK_CONFIG.API_URL).trim();
   var KEY = 'AGRES_BREAK_SESSION_V12';
 
   function getToken() {
@@ -943,9 +946,9 @@
 (function() {
   // ====== KONFIGURASI SCANNER POP-UP (WAJIB DIISI) ======
   // URL halaman scanner.html yang sudah di-host (GitHub Pages / Netlify / dll), HTTPS.
-  var SCANNER_URL = 'https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec';   // contoh: 'https://namauser.github.io/agres-scanner/scanner.html'
+  var SCANNER_URL = '';   // contoh: 'https://namauser.github.io/agres-scanner/scanner.html'
   // URL Web App Apps Script (yang berakhiran /exec). Dipakai untuk mode cadangan (redirect).
-  var APP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec';  // contoh: 'https://script.google.com/macros/s/XXXX/exec'
+  var APP_EXEC_URL = '';  // contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // =======================================================
   var scannerWin = null;
 
@@ -1096,6 +1099,7 @@
       var a = document.activeElement;
       if (!a || (a.tagName !== 'INPUT' && a.tagName !== 'SELECT' && a.tagName !== 'TEXTAREA')) focusHwInput();
     }, 1000);
+    captureUrlScan_();
     restoreSession();
     loadPublicConfig();
     initReportControls();
@@ -1126,34 +1130,32 @@
     }
   }
 
-  function checkUrlScanParam() {
-    if (!currentUser) return;
+  var pendingScan = null;   // kode dari ?scan= di URL (QR lama / pengalihan dari link lama)
+
+  function captureUrlScan_() {
     try {
-      var metaCode = document.querySelector('meta[name="initial-scan"]');
-      var metaTs = document.querySelector('meta[name="initial-scan-ts"]');
-      var scanCode = metaCode ? String(metaCode.getAttribute('content') || '').trim() : '';
-      var scanTs = metaTs ? String(metaTs.getAttribute('content') || '').trim() : '';
-
-      if (!scanCode) {
-        var params = new URLSearchParams(window.location.search || '');
-        scanCode = (params.get('scan') || '').trim();
-        scanTs = (params.get('t') || '').trim();
+      var params = new URLSearchParams(window.location.search || '');
+      var code = (params.get('scan') || '').trim();
+      if (code) pendingScan = { code: code, ts: (params.get('t') || '').trim() };
+      if (params.has('scan') || params.has('t')) {
+        window.history.replaceState(null, '', window.location.pathname + (window.location.hash || ''));
       }
-      if (!scanCode) return;
-
-      // kosongkan agar tidak diproses dua kali
-      if (metaCode) metaCode.setAttribute('content', '');
-
-      // anti-ulang: abaikan jika timestamp scan ini sudah pernah diproses (mis. halaman di-reload)
-      if (scanTs) {
-        try {
-          var last = Number(localStorage.getItem('AGRES_LAST_SCAN_TS') || 0);
-          if (last && last >= Number(scanTs)) return;
-          localStorage.setItem('AGRES_LAST_SCAN_TS', String(scanTs));
-        } catch (e) {}
-      }
-      handleScannedValue(scanCode);
     } catch (e) {}
+  }
+
+  // dipanggil setelah login / pemulihan sesi berhasil
+  function checkUrlScanParam() {
+    if (!currentUser || !pendingScan) return;
+    var p = pendingScan;
+    pendingScan = null;
+    if (p.ts) {
+      try {
+        var last = Number(localStorage.getItem('AGRES_LAST_SCAN_TS') || 0);
+        if (last && last >= Number(p.ts)) return;
+        localStorage.setItem('AGRES_LAST_SCAN_TS', String(p.ts));
+      } catch (e) {}
+    }
+    handleScannedValue(p.code);
   }
 
   function startClock() {
