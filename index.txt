@@ -1,0 +1,776 @@
+/**
+ * BREAK & SESSION MONITOR — BACKEND (versi hosting)
+ *
+ * Sheet yang dipakai: Users, Log_Istirahat, Config
+ *
+ * Isi sheet Config (kolom A = kunci, B = nilai). Kunci yang belum ada otomatis
+ * ditambahkan dengan nilai bawaan saat aplikasi pertama kali dipakai:
+ *   TOTAL_KUOTA_MENIT  60      total menit istirahat per hari
+ *   MAX_CONCURRENT     2       maks. orang istirahat bersamaan per divisi
+ *   ALERT_MENIT        40      peringatan jika satu sesi melewati menit ini
+ *   MAX_SESI           3       jumlah sesi (scan mulai-selesai) per hari
+ *   JAM_MULAI          12:00   sebelum jam ini barcode tidak bisa ditampilkan / di-scan
+ *   ALLOW_SELF_SCAN    YA      YA = staff boleh scan barcode POS sendiri
+ *   POS_QR_SECRET      (isi sendiri) kode barcode POS
+ */
+const SHEET_USERS = 'Users';
+const SHEET_LOG = 'Log_Istirahat';
+const SHEET_CONFIG = 'Config';
+
+const APP_TZ = 'Asia/Jakarta';           // zona waktu aplikasi (WIB)
+const SESSION_TTL_ = 21600;              // 6 jam, diperpanjang selama dipakai
+const MAX_FAIL_ = 5;                     // salah PIN 5x -> dikunci
+const FAIL_WINDOW_ = 600;                // 10 menit
+const MIN_SECONDS_BEFORE_FINISH_ = 20;   // cegah scan ganda tak sengaja (start langsung finish)
+const MAX_REPORT_ROWS_ = 6000;
+
+const CONFIG_DEFAULTS_ = {
+  TOTAL_KUOTA_MENIT: [60, 'Total kuota istirahat per hari (menit)'],
+  MAX_CONCURRENT: [2, 'Maks. orang istirahat bersamaan per divisi'],
+  ALERT_MENIT: [40, 'Peringatan jika satu sesi melewati menit ini'],
+  MAX_SESI: [3, 'Jumlah sesi (scan mulai-selesai) per hari; sesi terakhir untuk istirahat sedikit-sedikit'],
+  JAM_MULAI: ['12:00', 'Jam mulai istirahat (HH:mm). Sebelum jam ini barcode tidak bisa ditampilkan / di-scan'],
+  ALLOW_SELF_SCAN: ['YA', 'YA = staff boleh scan barcode POS sendiri; TIDAK = hanya TL/SPV yang scan']
+};
+const PUBLIC_CONFIG_KEYS_ = ['TOTAL_KUOTA_MENIT', 'MAX_CONCURRENT', 'ALERT_MENIT', 'MAX_SESI', 'JAM_MULAI', 'ALLOW_SELF_SCAN'];
+
+// =====================================================================
+//  UTILITAS
+// =====================================================================
+function pad2_(n) { return (n < 10 ? '0' : '') + n; }
+
+function getHeaderMap(sheet) {
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const map = {};
+  headers.forEach(function (h, i) { map[String(h).trim()] = i; });
+  return map;
+}
+
+function parseHM_(v, fallback) {
+  try {
+    if (v instanceof Date && !isNaN(v.getTime())) return Utilities.formatDate(v, APP_TZ, 'HH:mm');
+    if (typeof v === 'number' && isFinite(v)) {
+      const total = Math.round(v * 24 * 60);
+      return pad2_(Math.floor(total / 60) % 24) + ':' + pad2_(total % 60);
+    }
+    const m = String(v === undefined || v === null ? '' : v).trim().match(/^(\d{1,2})[:.](\d{2})/);
+    if (m) return pad2_(Number(m[1])) + ':' + m[2];
+  } catch (e) { /* pakai bawaan */ }
+  return fallback;
+}
+
+function getSystemConfig() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_CONFIG);
+  const data = sheet.getDataRange().getValues();
+  const config = {};
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0]) config[String(data[i][0]).trim()] = data[i][1];
+  }
+  // tambahkan kunci yang belum ada (supaya terlihat & bisa diedit di sheet)
+  const missing = Object.keys(CONFIG_DEFAULTS_).filter(function (k) { return !(k in config); });
+  if (missing.length) {
+    try {
+      missing.forEach(function (k) {
+        const r = sheet.getLastRow() + 1;
+        if (k === 'JAM_MULAI') sheet.getRange(r, 2).setNumberFormat('@');   // jaga tetap teks "12:00"
+        sheet.getRange(r, 1, 1, 3).setValues([[k, CONFIG_DEFAULTS_[k][0], CONFIG_DEFAULTS_[k][1]]]);
+      });
+    } catch (e) { /* abaikan, pakai bawaan */ }
+    missing.forEach(function (k) { config[k] = CONFIG_DEFAULTS_[k][0]; });
+  }
+  return config;
+}
+
+function breakSettings_(config) {
+  config = config || getSystemConfig();
+  return {
+    maxQuota: Number(config['TOTAL_KUOTA_MENIT'] || 60),
+    maxPerDivisi: Number(config['MAX_CONCURRENT'] || 2),
+    alertMin: Number(config['ALERT_MENIT'] || 40),
+    maxSesi: Math.max(1, Number(config['MAX_SESI'] || 3)),
+    jamMulai: parseHM_(config['JAM_MULAI'], '12:00'),
+    selfScan: String(config['ALLOW_SELF_SCAN'] === undefined ? 'YA' : config['ALLOW_SELF_SCAN']).trim().toUpperCase() !== 'TIDAK',
+    posSecret: String(config['POS_QR_SECRET'] || '').trim().toUpperCase()
+  };
+}
+
+// config yang aman dikirim ke browser (tanpa POS_QR_SECRET)
+function publicConfig_(config) {
+  const s = breakSettings_(config);
+  return {
+    TOTAL_KUOTA_MENIT: s.maxQuota,
+    MAX_CONCURRENT: s.maxPerDivisi,
+    ALERT_MENIT: s.alertMin,
+    MAX_SESI: s.maxSesi,
+    JAM_MULAI: s.jamMulai,
+    ALLOW_SELF_SCAN: s.selfScan ? 'YA' : 'TIDAK'
+  };
+}
+
+function breakStartMs_(jamMulai, now) {
+  const day = Utilities.formatDate(now, APP_TZ, 'yyyy-MM-dd');
+  return Utilities.parseDate(day + ' ' + jamMulai, APP_TZ, 'yyyy-MM-dd HH:mm').getTime();
+}
+
+function dayStr_(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, APP_TZ, 'yyyy-MM-dd');
+  return String(v === undefined || v === null ? '' : v).trim().substring(0, 10);
+}
+
+// ---- hitung tanggal (murni, tanpa zona waktu) ----
+function ymdToUTC_(s) { const p = String(s).split('-').map(Number); return Date.UTC(p[0], p[1] - 1, p[2]); }
+function utcToYmd_(ms) { const d = new Date(ms); return d.getUTCFullYear() + '-' + pad2_(d.getUTCMonth() + 1) + '-' + pad2_(d.getUTCDate()); }
+function addDays_(s, n) { return utcToYmd_(ymdToUTC_(s) + n * 86400000); }
+function dow_(s) { return new Date(ymdToUTC_(s)).getUTCDay(); }   // 0 = Minggu
+
+// =====================================================================
+//  SESI LOGIN (token) & BATAS PERCOBAAN
+// =====================================================================
+function apiError_(code, msg) { const e = new Error(msg); e.code = code; return e; }
+
+function sessionCreate_(profile) {
+  const token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
+  CacheService.getScriptCache().put('S_' + token, JSON.stringify(profile), SESSION_TTL_);
+  return token;
+}
+
+function sessionGet_(token) {
+  token = String(token || '');
+  if (token.length < 32) return null;
+  const cache = CacheService.getScriptCache();
+  const raw = cache.get('S_' + token);
+  if (!raw) return null;
+  let s;
+  try { s = JSON.parse(raw); } catch (e) { return null; }
+  cache.put('S_' + token, raw, SESSION_TTL_);
+  s.token = token;
+  return s;
+}
+
+function sessionDelete_(token) { CacheService.getScriptCache().remove('S_' + String(token || '')); }
+
+function failKey_(id) { return 'F_' + String(id || '').trim().toLowerCase(); }
+function failCount_(id) { return Number(CacheService.getScriptCache().get(failKey_(id)) || 0); }
+function failInc_(id) { CacheService.getScriptCache().put(failKey_(id), String(failCount_(id) + 1), FAIL_WINDOW_); }
+function failClear_(id) { CacheService.getScriptCache().remove(failKey_(id)); }
+
+// =====================================================================
+//  1. LOGIN
+// =====================================================================
+function loginUser_(userId, pin) {
+  const cleanId = String(userId || '').trim().toUpperCase();
+  const cleanPin = String(pin || '').trim();
+  if (!cleanId || !cleanPin) return { success: false, message: 'User ID dan PIN wajib diisi.' };
+
+  if (failCount_(cleanId) >= MAX_FAIL_) {
+    return { success: false, message: 'Terlalu banyak percobaan gagal. Coba lagi dalam 10 menit.' };
+  }
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+  const map = getHeaderMap(sheet);
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (String(row[map['User_ID']]).trim().toUpperCase() === cleanId &&
+        String(row[map['PIN']]).trim() === cleanPin) {
+
+      if (String(row[map['Status_Akun']]).trim().toUpperCase() !== 'AKTIF') {
+        return { success: false, message: 'Akun tidak aktif. Hubungi TL/SPV.' };
+      }
+
+      const profile = {
+        userId: String(row[map['User_ID']]).trim(),
+        nama: String(row[map['Nama']]).trim(),
+        role: String(row[map['Role_Sistem']]).trim().toUpperCase(),
+        jabatan: String(row[map['Jabatan']]).trim()
+      };
+      failClear_(cleanId);
+      const token = sessionCreate_(profile);
+      const config = getSystemConfig();
+      return {
+        success: true,
+        user: profile,
+        state: getUserDailyStatus_(profile.userId),
+        config: publicConfig_(config),
+        token: token
+      };
+    }
+  }
+  failInc_(cleanId);
+  return { success: false, message: 'User ID atau PIN salah.' };
+}
+
+function getPublicConfig_() { return publicConfig_(getSystemConfig()); }
+
+function whoami_(ctx) {
+  return { success: true, user: { userId: ctx.userId, nama: ctx.nama, role: ctx.role, jabatan: ctx.jabatan },
+           state: getUserDailyStatus_(ctx.userId), config: publicConfig_(getSystemConfig()) };
+}
+
+function logout_(ctx) { sessionDelete_(ctx.token); return { success: true }; }
+
+// =====================================================================
+//  2. STATUS ISTIRAHAT HARI INI
+// =====================================================================
+function getUserDailyStatus_(userId) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName(SHEET_LOG);
+  const map = getHeaderMap(sheet);
+  const data = sheet.getDataRange().getValues();
+  const cfg = breakSettings_();
+
+  const userProfile = findUserById(userId);
+  const targetJabatan = userProfile ? String(userProfile.jabatan).trim().toUpperCase() : '';
+
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, APP_TZ, 'yyyy-MM-dd');
+  const me = String(userId).trim().toUpperCase();
+
+  let usedMinutes = 0;
+  let activeSession = null;
+  let completedSessions = 0;
+  const activeUsersSameDivisi = [];
+
+  for (let i = 1; i < data.length; i++) {
+    const row = data[i];
+    if (dayStr_(row[map['Tanggal']]) !== todayStr) continue;
+
+    const status = String(row[map['Status']]).trim().toUpperCase();
+    const rowUserId = String(row[map['User_ID']]).trim();
+    const rowJabatan = String(row[map['Jabatan']]).trim();
+
+    if (status === 'ISTIRAHAT') {
+      const startTime = new Date(row[map['Waktu_Mulai']]);
+      const item = {
+        userId: rowUserId, nama: row[map['Nama']], jabatan: rowJabatan, sesi: row[map['Sesi']],
+        waktuMulai: Utilities.formatDate(startTime, APP_TZ, 'HH:mm:ss'),
+        startTimestamp: startTime.getTime(),
+        elapsedMenit: Math.max(0, Math.floor((now - startTime) / 60000))
+      };
+      if (rowJabatan.toUpperCase() === targetJabatan) activeUsersSameDivisi.push(item);
+      if (rowUserId.toUpperCase() === me) {
+        activeSession = { logId: row[map['Log_ID']], sesi: row[map['Sesi']], startTimestamp: startTime.getTime() };
+      }
+    } else if (status === 'SELESAI' && rowUserId.toUpperCase() === me) {
+      usedMinutes += Number(row[map['Durasi_Menit']] || 0);
+      completedSessions++;
+    }
+  }
+
+  const startsAtTs = breakStartMs_(cfg.jamMulai, now);
+  return {
+    usedMinutes: usedMinutes,
+    remainingMinutes: Math.max(0, cfg.maxQuota - usedMinutes),
+    completedSessions: completedSessions,
+    maxSesi: cfg.maxSesi,
+    activeSession: activeSession,
+    divisiActiveList: activeUsersSameDivisi,
+    divisiActiveCount: activeUsersSameDivisi.length,
+    divisiName: userProfile ? userProfile.jabatan : '-',
+    jamMulai: cfg.jamMulai,
+    startsAtTs: startsAtTs,
+    serverNow: now.getTime(),
+    breakOpen: now.getTime() >= startsAtTs
+  };
+}
+
+// =====================================================================
+//  3. PROSES SCAN (START / FINISH)
+// =====================================================================
+function processBarcodeScan_(scannedCode, scannerUser) {
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(10000);
+
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const cfg = breakSettings_();
+    const now = new Date();
+
+    // --- BELUM JAM MULAI: semua scan ditolak ---
+    if (now.getTime() < breakStartMs_(cfg.jamMulai, now)) {
+      return {
+        success: false, title: 'Belum Waktunya Istirahat',
+        message: 'Istirahat dimulai pukul ' + cfg.jamMulai + '. Barcode belum bisa di-scan sebelum jam tersebut.'
+      };
+    }
+
+    const cleanCode = String(scannedCode || '').trim().toUpperCase();
+    if (!cleanCode) return { success: false, title: 'Kode Kosong', message: 'Kode barcode tidak terbaca.' };
+
+    let targetUserId = '';
+    let scannerName = scannerUser.nama;
+    const isLeader = scannerUser.role === 'LEADER';
+
+    if (cfg.posSecret && cleanCode === cfg.posSecret) {
+      if (!isLeader && !cfg.selfScan) {
+        return { success: false, title: 'Akses Ditolak', message: 'Scan mandiri dinonaktifkan. Tunjukkan barcode Anda ke TL / SPV.' };
+      }
+      targetUserId = scannerUser.userId;
+      scannerName = scannerUser.nama + ' (Self-Scan Pos)';
+    } else {
+      if (!isLeader) {
+        return {
+          success: false, title: 'Akses Ditolak',
+          message: 'Staff hanya bisa scan barcode POS. Untuk barcode pribadi, tunjukkan ke TL / SPV.'
+        };
+      }
+      targetUserId = cleanCode;
+    }
+
+    const targetUser = findUserById(targetUserId);
+    if (!targetUser) {
+      return { success: false, title: 'Barcode Tidak Dikenali', message: 'Kode ' + scannedCode + ' tidak terdaftar di sistem.' };
+    }
+
+    const dailyState = getUserDailyStatus_(targetUser.userId);
+    const logSheet = ss.getSheetByName(SHEET_LOG);
+    const logMap = getHeaderMap(logSheet);
+    const todayStr = Utilities.formatDate(now, APP_TZ, 'yyyy-MM-dd');
+
+    // A. FINISH
+    if (dailyState.activeSession) {
+      const data = logSheet.getDataRange().getValues();
+      for (let i = 1; i < data.length; i++) {
+        if (String(data[i][logMap['Log_ID']]) === String(dailyState.activeSession.logId)) {
+          const startTime = new Date(data[i][logMap['Waktu_Mulai']]);
+          const sinceStartSec = (now - startTime) / 1000;
+          if (sinceStartSec < MIN_SECONDS_BEFORE_FINISH_) {
+            return {
+              success: false, title: 'Baru Saja Dimulai',
+              message: targetUser.nama + ' baru mulai istirahat ' + Math.floor(sinceStartSec) + ' detik lalu. Tunggu sebentar sebelum scan selesai (mencegah scan ganda).'
+            };
+          }
+          const durationMin = Math.max(1, Math.round((now - startTime) / 60000));
+          const totalUsedToday = dailyState.usedMinutes + durationMin;
+          const ketWaktu = totalUsedToday > cfg.maxQuota ? 'OVER LIMIT' : 'TEPAT WAKTU';
+
+          const rowIndex = i + 1;
+          logSheet.getRange(rowIndex, logMap['Waktu_Selesai'] + 1).setValue(now);
+          logSheet.getRange(rowIndex, logMap['Durasi_Menit'] + 1).setValue(durationMin);
+          logSheet.getRange(rowIndex, logMap['Status'] + 1).setValue('SELESAI');
+          logSheet.getRange(rowIndex, logMap['Scanner_Finish'] + 1).setValue(scannerName);
+          logSheet.getRange(rowIndex, logMap['Keterangan_Waktu'] + 1).setValue(ketWaktu);
+
+          const sisaBaru = Math.max(0, cfg.maxQuota - totalUsedToday);
+          return {
+            success: true, action: 'FINISH', title: 'Istirahat Selesai',
+            message: targetUser.nama + ' (' + targetUser.jabatan + ') selesai istirahat ' + durationMin + ' menit. Sisa kuota: ' + sisaBaru + ' menit.'
+          };
+        }
+      }
+    }
+
+    // B. START
+    if (dailyState.divisiActiveCount >= cfg.maxPerDivisi) {
+      const names = dailyState.divisiActiveList.map(function (u) { return u.nama; }).join(' & ');
+      return {
+        success: false, title: 'Kuota Divisi Penuh',
+        message: 'Divisi ' + targetUser.jabatan + ' sudah mencapai batas ' + cfg.maxPerDivisi + ' orang istirahat (' + names + ').'
+      };
+    }
+
+    if (dailyState.completedSessions >= cfg.maxSesi || dailyState.remainingMinutes <= 0) {
+      const sebab = dailyState.completedSessions >= cfg.maxSesi
+        ? 'sudah memakai ' + cfg.maxSesi + ' sesi'
+        : 'kuota ' + cfg.maxQuota + ' menit sudah habis';
+      return {
+        success: false, title: 'Jatah Istirahat Habis',
+        message: 'Jatah istirahat ' + targetUser.nama + ' hari ini ' + sebab + ' (terpakai: ' + dailyState.usedMinutes + ' menit).'
+      };
+    }
+
+    const nextSesi = dailyState.completedSessions + 1;
+    const logId = 'LOG-' + Utilities.formatDate(now, APP_TZ, 'yyyyMMdd-HHmmss') + '-' + Math.floor(Math.random() * 900 + 100);
+
+    const newRow = new Array(Object.keys(logMap).length).fill('');
+    newRow[logMap['Log_ID']] = logId;
+    newRow[logMap['Tanggal']] = todayStr;
+    newRow[logMap['User_ID']] = targetUser.userId;
+    newRow[logMap['Nama']] = targetUser.nama;
+    newRow[logMap['Jabatan']] = targetUser.jabatan;
+    newRow[logMap['Sesi']] = nextSesi;
+    newRow[logMap['Waktu_Mulai']] = now;
+    newRow[logMap['Status']] = 'ISTIRAHAT';
+    newRow[logMap['Scanner_Start']] = scannerName;
+    logSheet.appendRow(newRow);
+
+    const tambahan = nextSesi === cfg.maxSesi && cfg.maxSesi > 1 ? ' (Tambahan)' : '';
+    return {
+      success: true, action: 'START',
+      title: 'Mulai Istirahat • Sesi ' + nextSesi + tambahan,
+      message: targetUser.nama + ' (' + targetUser.jabatan + ') mulai istirahat. Sisa kuota: ' + dailyState.remainingMinutes + ' menit.'
+    };
+  } catch (err) {
+    return { success: false, title: 'Kesalahan Sistem', message: err.message };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+function findUserById(userId) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+  const map = getHeaderMap(sheet);
+  const data = sheet.getDataRange().getValues();
+  const cleanId = String(userId).trim().toUpperCase();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][map['User_ID']]).trim().toUpperCase() === cleanId) {
+      return {
+        userId: String(data[i][map['User_ID']]).trim(),
+        nama: String(data[i][map['Nama']]).trim(),
+        role: String(data[i][map['Role_Sistem']]).trim().toUpperCase(),
+        jabatan: String(data[i][map['Jabatan']]).trim()
+      };
+    }
+  }
+  return null;
+}
+
+// =====================================================================
+//  4. MONITORING LIVE (LEADER)
+// =====================================================================
+function getLeaderLiveRoster_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const userSheet = ss.getSheetByName(SHEET_USERS);
+  const logSheet = ss.getSheetByName(SHEET_LOG);
+  const uMap = getHeaderMap(userSheet);
+  const lMap = getHeaderMap(logSheet);
+  const uData = userSheet.getDataRange().getValues();
+  const lData = logSheet.getDataRange().getValues();
+  const cfg = breakSettings_();
+
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, APP_TZ, 'yyyy-MM-dd');
+
+  const activeUsers = {};
+  for (let i = 1; i < uData.length; i++) {
+    const row = uData[i];
+    const uid = String(row[uMap['User_ID']] || '').trim();
+    const statusAkun = String(row[uMap['Status_Akun']] || '').trim().toUpperCase();
+    if (!uid || statusAkun !== 'AKTIF') continue;
+    activeUsers[uid] = { userId: uid, nama: row[uMap['Nama']], jabatan: row[uMap['Jabatan']],
+      usedMinutes: 0, completedCount: 0, hasAnyLogToday: false, activeLog: null };
+  }
+
+  for (let i = 1; i < lData.length; i++) {
+    const row = lData[i];
+    if (dayStr_(row[lMap['Tanggal']]) !== todayStr) continue;
+    const uid = String(row[lMap['User_ID']] || '').trim();
+    if (!activeUsers[uid]) continue;
+
+    activeUsers[uid].hasAnyLogToday = true;
+    const status = String(row[lMap['Status']] || '').trim().toUpperCase();
+    if (status === 'SELESAI') {
+      activeUsers[uid].usedMinutes += Number(row[lMap['Durasi_Menit']] || 0);
+      activeUsers[uid].completedCount++;
+    } else if (status === 'ISTIRAHAT') {
+      const startTime = new Date(row[lMap['Waktu_Mulai']]);
+      activeUsers[uid].activeLog = {
+        sesi: row[lMap['Sesi']],
+        waktuMulai: Utilities.formatDate(startTime, APP_TZ, 'HH:mm:ss'),
+        elapsedMin: Math.max(0, Math.floor((now - startTime) / 60000))
+      };
+    }
+  }
+
+  const sedangIstirahat = [], belumIstirahat = [], seharusnyaMasuk = [], sudahIstirahat = [];
+  Object.keys(activeUsers).forEach(function (uid) {
+    const u = activeUsers[uid];
+    const sisaMenit = Math.max(0, cfg.maxQuota - u.usedMinutes);
+
+    if (u.activeLog) {
+      const projectedTotal = u.usedMinutes + u.activeLog.elapsedMin;
+      const isOverdue = (u.activeLog.elapsedMin >= cfg.alertMin) || (projectedTotal > cfg.maxQuota);
+      const item = { userId: u.userId, nama: u.nama, jabatan: u.jabatan, sesi: u.activeLog.sesi,
+        waktuMulai: u.activeLog.waktuMulai, elapsedMin: u.activeLog.elapsedMin,
+        sisaMenit: Math.max(0, cfg.maxQuota - projectedTotal) };
+      if (isOverdue) seharusnyaMasuk.push(item); else sedangIstirahat.push(item);
+    } else if (u.completedCount > 0) {
+      sudahIstirahat.push({ userId: u.userId, nama: u.nama, jabatan: u.jabatan,
+        sesiSelesai: u.completedCount, terpakaiMenit: u.usedMinutes, sisaMenit: sisaMenit });
+    } else if (!u.hasAnyLogToday) {
+      belumIstirahat.push({ userId: u.userId, nama: u.nama, jabatan: u.jabatan, sisaMenit: cfg.maxQuota });
+    }
+  });
+
+  return { sedangIstirahat: sedangIstirahat, seharusnyaMasuk: seharusnyaMasuk,
+           belumIstirahat: belumIstirahat, sudahIstirahat: sudahIstirahat };
+}
+
+// =====================================================================
+//  5. ANALITIK RINGKAS (kartu di tab Monitor)
+// =====================================================================
+function getLeaderAnalytics_(period) {
+  const r = getReport_(period, '');
+  return {
+    period: period,
+    totalSessions: r.kpi.totalSesi,
+    avgDuration: r.kpi.avgMenit,
+    onTimePercentage: r.kpi.onTimePct,
+    topLateUsers: r.perStaff.filter(function (s) { return s.over > 0; })
+      .sort(function (a, b) { return b.over - a.over; })
+      .map(function (s) { return { nama: s.nama, jabatan: s.jabatan, count: s.over }; })
+  };
+}
+
+// =====================================================================
+//  6. REPORT (harian / mingguan / bulanan) — untuk list, grafik & export
+// =====================================================================
+function reportRange_(period, anchor) {
+  const today = Utilities.formatDate(new Date(), APP_TZ, 'yyyy-MM-dd');
+  let a = String(anchor || '').trim();
+  if (/^\d{4}-\d{2}$/.test(a)) a = a + '-01';
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(a)) a = today;
+
+  period = String(period || 'DAILY').toUpperCase();
+  let from, to, label;
+  if (period === 'WEEKLY') {
+    from = addDays_(a, -((dow_(a) + 6) % 7));    // Senin
+    to = addDays_(from, 6);                     // Minggu
+    label = 'Minggu ' + from + ' s/d ' + to;
+  } else if (period === 'MONTHLY') {
+    const p = a.split('-').map(Number);
+    from = p[0] + '-' + pad2_(p[1]) + '-01';
+    to = utcToYmd_(Date.UTC(p[0], p[1], 0));
+    label = 'Bulan ' + p[0] + '-' + pad2_(p[1]);
+  } else {
+    period = 'DAILY';
+    from = to = a;
+    label = 'Tanggal ' + a;
+  }
+  return { period: period, from: from, to: to, label: label };
+}
+
+function getReport_(period, anchor) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const cfg = breakSettings_();
+  const range = reportRange_(period, anchor);
+
+  const logSheet = ss.getSheetByName(SHEET_LOG);
+  const lMap = getHeaderMap(logSheet);
+  const lData = logSheet.getDataRange().getValues();
+
+  const now = new Date();
+  const byDay = {};
+  for (let d = range.from; d <= range.to; d = addDays_(d, 1)) {
+    byDay[d] = { date: d, sesi: 0, menit: 0, over: 0, staffSet: {} };
+  }
+  const byDivisi = {}, perStaff = {}, bySesiNo = {}, byHour = {};
+  const staffDay = {};          // userId|date -> total menit
+  const rows = [];
+  let totalSesi = 0, totalMenit = 0, onTime = 0, over = 0, berjalan = 0;
+  const staffSet = {};
+
+  for (let i = 1; i < lData.length; i++) {
+    const r = lData[i];
+    const day = dayStr_(r[lMap['Tanggal']]);
+    if (day < range.from || day > range.to) continue;
+
+    const status = String(r[lMap['Status']] || '').trim().toUpperCase();
+    if (status !== 'SELESAI' && status !== 'ISTIRAHAT') continue;
+
+    const uid = String(r[lMap['User_ID']] || '').trim();
+    const nama = String(r[lMap['Nama']] || '');
+    const jab = String(r[lMap['Jabatan']] || '');
+    const sesi = Number(r[lMap['Sesi']] || 0);
+    const mulai = r[lMap['Waktu_Mulai']] ? new Date(r[lMap['Waktu_Mulai']]) : null;
+    const selesai = r[lMap['Waktu_Selesai']] ? new Date(r[lMap['Waktu_Selesai']]) : null;
+    const ket = String(r[lMap['Keterangan_Waktu']] || '').trim().toUpperCase();
+    const isDone = status === 'SELESAI';
+    let durasi = Number(r[lMap['Durasi_Menit']] || 0);
+    if (!isDone && mulai) durasi = Math.max(0, Math.floor((now - mulai) / 60000));
+
+    if (rows.length < MAX_REPORT_ROWS_) {
+      rows.push({
+        tanggal: day, userId: uid, nama: nama, jabatan: jab, sesi: sesi,
+        mulai: mulai ? Utilities.formatDate(mulai, APP_TZ, 'HH:mm:ss') : '',
+        selesai: selesai ? Utilities.formatDate(selesai, APP_TZ, 'HH:mm:ss') : '',
+        durasi: durasi, status: isDone ? (ket || 'SELESAI') : 'BERJALAN',
+        scannerStart: String(r[lMap['Scanner_Start']] || ''), scannerFinish: String(r[lMap['Scanner_Finish']] || '')
+      });
+    }
+    if (!isDone) { berjalan++; continue; }       // sesi berjalan belum dihitung di statistik
+
+    totalSesi++; totalMenit += durasi; staffSet[uid] = true;
+    if (ket === 'OVER LIMIT') over++; else onTime++;
+
+    const dd = byDay[day];
+    if (!dd) continue;
+    dd.sesi++; dd.menit += durasi; dd.staffSet[uid] = true; if (ket === 'OVER LIMIT') dd.over++;
+
+    if (!byDivisi[jab]) byDivisi[jab] = { jabatan: jab, sesi: 0, menit: 0, staffSet: {} };
+    byDivisi[jab].sesi++; byDivisi[jab].menit += durasi; byDivisi[jab].staffSet[uid] = true;
+
+    bySesiNo[sesi] = (bySesiNo[sesi] || 0) + 1;
+    if (mulai) {
+      const h = Utilities.formatDate(mulai, APP_TZ, 'HH');
+      byHour[h] = (byHour[h] || 0) + 1;
+    }
+
+    if (!perStaff[uid]) perStaff[uid] = { userId: uid, nama: nama, jabatan: jab, sesi: 0, menit: 0, over: 0, hariSet: {}, hariOver: 0 };
+    const ps = perStaff[uid];
+    ps.sesi++; ps.menit += durasi; ps.hariSet[day] = true; if (ket === 'OVER LIMIT') ps.over++;
+
+    const sdKey = uid + '|' + day;
+    staffDay[sdKey] = (staffDay[sdKey] || 0) + durasi;
+  }
+
+  let overDays = 0;
+  Object.keys(staffDay).forEach(function (k) {
+    if (staffDay[k] > cfg.maxQuota) { overDays++; perStaff[k.split('|')[0]].hariOver++; }
+  });
+
+  // jumlah staff aktif (untuk % partisipasi)
+  const uSheet = ss.getSheetByName(SHEET_USERS);
+  const uMap = getHeaderMap(uSheet);
+  const uData = uSheet.getDataRange().getValues();
+  let aktif = 0;
+  for (let i = 1; i < uData.length; i++) {
+    if (String(uData[i][uMap['Status_Akun']] || '').trim().toUpperCase() === 'AKTIF') aktif++;
+  }
+
+  const days = Object.keys(byDay).sort().map(function (k) {
+    const d = byDay[k];
+    return { date: d.date, sesi: d.sesi, menit: d.menit, over: d.over, orang: Object.keys(d.staffSet).length };
+  });
+  const divisi = Object.keys(byDivisi).map(function (k) {
+    const d = byDivisi[k];
+    const orang = Object.keys(d.staffSet).length;
+    return { jabatan: d.jabatan, sesi: d.sesi, menit: d.menit, orang: orang, avgMenit: d.sesi ? Math.round(d.menit / d.sesi * 10) / 10 : 0 };
+  }).sort(function (a, b) { return b.menit - a.menit; });
+  const staff = Object.keys(perStaff).map(function (k) {
+    const s = perStaff[k];
+    const hari = Object.keys(s.hariSet).length;
+    return { userId: s.userId, nama: s.nama, jabatan: s.jabatan, hari: hari, sesi: s.sesi, menit: s.menit,
+      avgMenitPerHari: hari ? Math.round(s.menit / hari * 10) / 10 : 0, over: s.over, hariOver: s.hariOver };
+  }).sort(function (a, b) { return b.menit - a.menit; });
+
+  rows.sort(function (a, b) {
+    if (a.tanggal !== b.tanggal) return a.tanggal < b.tanggal ? -1 : 1;
+    return (a.mulai || '') < (b.mulai || '') ? -1 : 1;
+  });
+
+  return {
+    range: range,
+    maxQuota: cfg.maxQuota,
+    maxSesi: cfg.maxSesi,
+    kpi: {
+      totalSesi: totalSesi,
+      totalMenit: totalMenit,
+      avgMenit: totalSesi ? Math.round(totalMenit / totalSesi * 10) / 10 : 0,
+      onTimePct: totalSesi ? Math.round(onTime / totalSesi * 100) : 100,
+      overSesi: over,
+      overHari: overDays,
+      staffUnik: Object.keys(staffSet).length,
+      staffAktif: aktif,
+      partisipasiPct: aktif ? Math.round(Object.keys(staffSet).length / aktif * 100) : 0,
+      berjalan: berjalan
+    },
+    perHari: days,
+    perDivisi: divisi,
+    perStaff: staff,
+    perSesi: Object.keys(bySesiNo).sort().map(function (k) { return { sesi: Number(k), jumlah: bySesiNo[k] }; }),
+    perJam: Object.keys(byHour).sort().map(function (k) { return { jam: k, jumlah: byHour[k] }; }),
+    rows: rows,
+    truncated: rows.length >= MAX_REPORT_ROWS_
+  };
+}
+
+// =====================================================================
+//  7. DAFTAR STAFF & KODE POS (untuk cetak barcode, khusus LEADER)
+// =====================================================================
+function getStaffList_() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+  const map = getHeaderMap(sheet);
+  const data = sheet.getDataRange().getValues();
+  const list = [];
+  for (let i = 1; i < data.length; i++) {
+    const uid = String(data[i][map['User_ID']] || '').trim();
+    if (!uid) continue;
+    if (String(data[i][map['Status_Akun']] || '').trim().toUpperCase() !== 'AKTIF') continue;
+    list.push({
+      userId: uid,
+      nama: String(data[i][map['Nama']] || '').trim(),
+      jabatan: String(data[i][map['Jabatan']] || '').trim(),
+      role: String(data[i][map['Role_Sistem']] || '').trim().toUpperCase()
+    });
+  }
+  list.sort(function (a, b) {
+    return (a.jabatan + a.nama).toLowerCase() < (b.jabatan + b.nama).toLowerCase() ? -1 : 1;
+  });
+  return list;
+}
+
+function getPosCode_() {
+  const s = breakSettings_();
+  return { code: s.posSecret ? String(getSystemConfig()['POS_QR_SECRET']).trim() : '' };
+}
+
+// =====================================================================
+//  8. API (doPost) — satu-satunya pintu masuk data
+// =====================================================================
+// open: tanpa login | roles: batasi peran | uid: argumen ke-n diisi USER_ID dari sesi
+// prof: argumen ke-n diisi profil pengguna dari sesi | ctx: kirim sesi sebagai argumen terakhir
+const API_ = {
+  loginUser:           { f: loginUser_, open: true },
+  getPublicConfig:     { f: getPublicConfig_, open: true },
+  whoami:              { f: whoami_, ctx: true },
+  logout:              { f: logout_, ctx: true },
+
+  getUserDailyStatus:  { f: getUserDailyStatus_, uid: 0 },
+  processBarcodeScan:  { f: processBarcodeScan_, prof: 1 },
+
+  getLeaderLiveRoster: { f: getLeaderLiveRoster_, roles: ['LEADER'] },
+  getLeaderAnalytics:  { f: getLeaderAnalytics_, roles: ['LEADER'] },
+  getReport:           { f: getReport_, roles: ['LEADER'] },
+  getStaffList:        { f: getStaffList_, roles: ['LEADER'] },
+  getPosCode:          { f: getPosCode_, roles: ['LEADER'] }
+};
+
+function dispatch_(fn, args, token) {
+  if (!Object.prototype.hasOwnProperty.call(API_, fn)) throw apiError_('NOFN', 'Fungsi tidak dikenal: ' + fn);
+  const cfg = API_[fn];
+  let ctx = null;
+
+  if (!cfg.open) {
+    ctx = sessionGet_(token);
+    if (!ctx) throw apiError_('AUTH', 'Sesi berakhir. Silakan login ulang.');
+    if (cfg.roles && cfg.roles.indexOf(ctx.role) === -1) {
+      throw apiError_('FORBIDDEN', 'Akses ditolak untuk peran ' + ctx.role + '.');
+    }
+  }
+
+  const n = cfg.f.length - (cfg.ctx ? 1 : 0);
+  const a = (Array.isArray(args) ? args : []).slice(0, n);
+  while (a.length < n) a.push('');
+
+  if (ctx) {
+    if (cfg.uid != null) a[cfg.uid] = ctx.userId;
+    if (cfg.prof != null) a[cfg.prof] = { userId: ctx.userId, nama: ctx.nama, role: ctx.role, jabatan: ctx.jabatan };
+  }
+  if (cfg.ctx) a.push(ctx);
+  return cfg.f.apply(null, a);
+}
+
+function doPost(e) {
+  let out;
+  try {
+    const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+    out = { ok: true, data: dispatch_(String(body.fn || ''), body.args, String(body.token || '')) };
+  } catch (err) {
+    out = { ok: false, error: String((err && err.message) ? err.message : err), code: (err && err.code) || '' };
+  }
+  return ContentService.createTextOutput(JSON.stringify(out)).setMimeType(ContentService.MimeType.JSON);
+}
+
+// Link Apps Script lama tidak lagi menjalankan aplikasi; hanya menampilkan info pindah.
+function doGet(e) {
+  const url = PropertiesService.getScriptProperties().getProperty('APP_URL') || '';
+  const link = url
+    ? '<p><a href="' + url.replace(/"/g, '&quot;') + '" target="_top" style="color:#e11d48;font-weight:700;">Buka aplikasi baru</a></p>'
+    : '<p>Silakan gunakan link aplikasi yang baru dari TL / SPV.</p>';
+  return HtmlService.createHtmlOutput(
+    '<div style="font-family:Segoe UI,Arial,sans-serif;max-width:420px;margin:15vh auto;text-align:center;padding:24px;">' +
+    '<h2>Aplikasi sudah pindah</h2><p>Link ini tidak lagi dipakai.</p>' + link + '</div>'
+  ).setTitle('Break Monitor');
+}
