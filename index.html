@@ -4,8 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>Break Monitor • PT Agres Info Teknologi</title>
-  <script src="config.js"></script>
-  <style>
+    <style>
   :root {
     --brand-red: #e11d48;
     --brand-soft: #fff1f2;
@@ -884,7 +883,7 @@
   <script>
 // ===== Pengganti google.script.run -> memanggil Apps Script lewat fetch (dengan token sesi) =====
 (function () {
-  var API_URL = '';   // WAJIB DIISI: URL Web App Apps Script yang berakhiran /exec
+  var API_URL = 'https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec';   // WAJIB DIISI: URL Web App Apps Script yang berakhiran /exec
   // ATAU isi di file config.js (disarankan, supaya tidak hilang saat index.html diganti)
   if (!API_URL && window.BREAK_CONFIG && window.BREAK_CONFIG.API_URL) API_URL = String(window.BREAK_CONFIG.API_URL).trim();
   var KEY = 'AGRES_BREAK_SESSION_V12';
@@ -948,7 +947,7 @@
   // URL halaman scanner.html yang sudah di-host (GitHub Pages / Netlify / dll), HTTPS.
   var SCANNER_URL = '';   // contoh: 'https://namauser.github.io/agres-scanner/scanner.html'
   // URL Web App Apps Script (yang berakhiran /exec). Dipakai untuk mode cadangan (redirect).
-  var APP_EXEC_URL = '';  // contoh: 'https://script.google.com/macros/s/XXXX/exec'
+  var APP_EXEC_URL = 'https://script.google.com/macros/s/AKfycbymsAH8nTOsOLFSe17C8dth41CGmtt4rzFVV7f3wzEwJS8d41y_Ok6XGly4hgZTMtVZ/exec';  // contoh: 'https://script.google.com/macros/s/XXXX/exec'
   // =======================================================
   var scannerWin = null;
 
